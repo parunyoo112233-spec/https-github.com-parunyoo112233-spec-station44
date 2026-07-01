@@ -3,13 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { 
   FuelInventory, 
   FuelRecord, 
   FuelRequest,
-  UserProfile
+  UserProfile,
+  UnitCredit
 } from '../types';
+import { onSnapshot, query } from 'firebase/firestore';
 import { 
   ResponsiveContainer, 
   BarChart, 
@@ -42,9 +44,13 @@ import {
   Loader2,
   XCircle,
   User,
-  FileCheck
+  FileCheck,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Building,
+  CreditCard
 } from 'lucide-react';
-import { approveFuelRequest } from '../lib/db-helpers';
+import { unitCreditsCol, approveFuelRequest } from '../lib/db-helpers';
 
 interface DashboardProps {
   inventory: FuelInventory[];
@@ -67,6 +73,39 @@ export default function Dashboard({
 
   const userRole = currentUser?.role || 'user';
   const [activeTab, setActiveTab] = useState<'my' | 'all'>(userRole === 'user' ? 'my' : 'all');
+
+  const [unitCredits, setUnitCredits] = useState<UnitCredit[]>([]);
+  const [selectedUnitId, setSelectedUnitId] = useState<string>('');
+
+  // Subscribe to Unit Credits
+  useEffect(() => {
+    const q = query(unitCreditsCol);
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const credits: UnitCredit[] = [];
+      snapshot.forEach((doc) => {
+        credits.push({ id: doc.id, ...doc.data() } as UnitCredit);
+      });
+      setUnitCredits(credits);
+    }, (error) => {
+      console.error("Error subscribing to unit credits: ", error);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Sync selectedUnitId with user's unit or default to first
+  useEffect(() => {
+    if (currentUser?.department) {
+      setSelectedUnitId(currentUser.department);
+    } else if (unitCredits.length > 0 && !selectedUnitId) {
+      setSelectedUnitId(unitCredits[0].id);
+    }
+  }, [currentUser, unitCredits, selectedUnitId]);
+
+  // Selected Unit Data matching selectedUnitId
+  const selectedUnitData = useMemo(() => {
+    if (!selectedUnitId) return null;
+    return unitCredits.find(uc => uc.id === selectedUnitId) || null;
+  }, [unitCredits, selectedUnitId]);
 
   const latestPendingRequest = useMemo(() => {
     return requests
@@ -382,15 +421,132 @@ export default function Dashboard({
         </div>
       </section>
 
-      {/* 3. System Status (Small) [Grid Span: 3 Cols] */}
-      <section id="bento_status_small" className="lg:col-span-3 bg-emerald-600 rounded-2xl p-5 flex items-center justify-between shadow-lg shadow-emerald-900/20 text-white hover:opacity-95 transition">
-        <div>
-          <p className="text-emerald-100 text-[10px] font-bold uppercase tracking-wider">Cloud Database</p>
-          <p className="text-white font-extrabold text-lg">Firebase Active</p>
-          <span className="text-[10px] text-emerald-100/80 uppercase font-mono block mt-1">Real-time Connected</span>
-        </div>
-        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shadow-inner">
-          <div className="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></div>
+      {/* 3. Unit Fuel Quotas / Received-Disbursed Summary [Grid Span: 3 Cols] */}
+      <section id="bento_unit_quota_summary" className="lg:col-span-3 bg-slate-800/40 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between shadow-lg">
+        <div className="space-y-3 w-full">
+          <div className="flex items-center justify-between border-b border-slate-800/60 pb-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+              <CreditCard className="h-4 w-4 text-emerald-400" />
+              โควตา & ยอดรับ-จ่ายหน่วย
+            </h3>
+            <span className="text-[8px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/20 uppercase font-mono font-bold">
+              Unit Quotas
+            </span>
+          </div>
+
+          <div>
+            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">หน่วยงานเบิกจ่าย</span>
+            {unitCredits.length > 0 && (userRole === 'admin' || userRole === 'officer') ? (
+              <select
+                value={selectedUnitId}
+                onChange={(e) => setSelectedUnitId(e.target.value)}
+                className="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg py-1 px-2 text-[11px] text-slate-200 focus:outline-none focus:border-emerald-500 transition cursor-pointer"
+              >
+                {unitCredits.map((uc) => (
+                  <option key={uc.id} value={uc.id}>{uc.unit}</option>
+                ))}
+              </select>
+            ) : (
+              <div className="mt-1 flex items-center gap-1.5 text-[11px] text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-lg w-fit">
+                <Building className="h-3 w-3 shrink-0" />
+                <span className="truncate max-w-[150px]">{selectedUnitId || 'ไม่ระบุหน่วย'}</span>
+              </div>
+            )}
+          </div>
+
+          {selectedUnitData ? (
+            <div className="space-y-2.5 pt-1">
+              {/* ยอดรับเข้าโควตา (Allocated / Incoming) */}
+              <div className="flex items-center gap-2 bg-slate-900/40 p-2 rounded-xl border border-slate-800/60">
+                <div className="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-full shrink-0">
+                  <ArrowDownCircle className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">ยอดโควตารับเข้า (ทั้งหมด)</span>
+                  <span className="text-sm font-black text-slate-100 font-mono">
+                    {(selectedUnitData.allocatedLimit || 0).toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">ลิตร</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* ยอดจ่ายออกสะสม (Dispatched / Used) */}
+              <div className="flex items-center gap-2 bg-slate-900/40 p-2 rounded-xl border border-slate-800/60">
+                <div className="p-1.5 bg-blue-500/10 text-blue-400 rounded-full shrink-0">
+                  <ArrowUpCircle className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">ยอดเบิกจ่ายสะสม (ใช้ไป)</span>
+                  <span className="text-sm font-black text-slate-100 font-mono">
+                    {(selectedUnitData.usedCredit || 0).toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">ลิตร</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* โควตาคงเหลือ (Remaining Limit) */}
+              {(() => {
+                const limit = selectedUnitData.allocatedLimit || 0;
+                const used = selectedUnitData.usedCredit || 0;
+                const remaining = Math.max(0, limit - used);
+                const pctUsed = limit > 0 ? (used / limit) * 100 : 0;
+
+                return (
+                  <div className="border-t border-slate-800/80 pt-2.5 mt-1.5">
+                    <div className="flex justify-between items-center text-[10px] mb-1">
+                      <span className="text-slate-400 font-semibold">โควตาคงเหลือ</span>
+                      <span className="text-emerald-400 font-bold font-mono">
+                        {remaining.toLocaleString()} ลิตร
+                      </span>
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800/60">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          pctUsed > 85 ? 'bg-red-500' : pctUsed > 60 ? 'bg-amber-500' : 'bg-emerald-500'
+                        }`}
+                        style={{ width: `${Math.min(100, pctUsed)}%` }}
+                      ></div>
+                    </div>
+                    
+                    <div className="flex justify-between text-[8px] text-slate-500 mt-1 font-mono">
+                      <span>ใช้ {pctUsed.toFixed(1)}%</span>
+                      <span>เหลือ {(100 - pctUsed).toFixed(1)}%</span>
+                    </div>
+
+                    {/* Fuel Types Breakdown in Quota */}
+                    {selectedUnitData.quotas && Object.keys(selectedUnitData.quotas).length > 0 && (
+                      <div className="border-t border-slate-800/60 pt-2 mt-2 space-y-1 text-[9px]">
+                        {Object.entries(selectedUnitData.quotas).map(([fuelType, q]) => {
+                          const quotaItem = q as { allocatedLimit?: number; usedCredit?: number };
+                          const fUsed = quotaItem.usedCredit || 0;
+                          const fLimit = quotaItem.allocatedLimit || 0;
+                          if (fLimit === 0) return null; // skip if no allocation
+                          const isDiesel = fuelType.includes('ดีเซล');
+                          const colorClass = isDiesel ? 'text-blue-400' : 'text-amber-500';
+
+                          return (
+                            <div key={fuelType} className="flex justify-between items-center text-slate-400">
+                              <span className="truncate max-w-[110px] text-slate-400">{fuelType}</span>
+                              <span className="font-mono text-slate-300">
+                                <span className={`${colorClass} font-bold`}>{fUsed.toLocaleString()}</span>
+                                <span className="text-slate-600"> / {fLimit.toLocaleString()} ล.</span>
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          ) : (
+            <div className="text-center py-5 text-slate-500 italic text-[10px] flex flex-col items-center justify-center gap-1.5 bg-slate-900/30 rounded-xl border border-dashed border-slate-800 p-3 mt-1">
+              <AlertTriangle className="h-5 w-5 text-amber-500/80 shrink-0" />
+              <span>ยังไม่มีข้อมูลสิทธิ์/โควตา</span>
+              <span className="text-[8px] text-slate-600 not-italic">กรุณาติดต่อเจ้าหน้าที่เพื่ออนุมัติสิทธิ์เบิก</span>
+            </div>
+          )}
         </div>
       </section>
 
