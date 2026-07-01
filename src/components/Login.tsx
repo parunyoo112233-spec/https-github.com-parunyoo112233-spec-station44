@@ -444,51 +444,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           {isSignUp && (
             <div className="space-y-4 border-t border-slate-700/50 pt-4 animate-fadeIn">
               
-              {/* Role Selection */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider block">
-                  บทบาทหน้าที่ (Role)
-                </label>
-                <div className="grid grid-cols-3 gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setRole('user')}
-                    className={`py-2 px-2 rounded-xl border text-[11px] font-semibold transition flex flex-col items-center justify-center gap-1 ${
-                      role === 'user'
-                        ? 'bg-blue-600/10 border-blue-500 text-blue-400'
-                        : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'
-                    }`}
-                  >
-                    <Truck className="h-4 w-4" />
-                    <span>ผู้ใช้บริการ</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRole('officer')}
-                    className={`py-2 px-2 rounded-xl border text-[11px] font-semibold transition flex flex-col items-center justify-center gap-1 ${
-                      role === 'officer'
-                        ? 'bg-emerald-600/10 border-emerald-500 text-emerald-400'
-                        : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'
-                    }`}
-                  >
-                    <Shield className="h-4 w-4" />
-                    <span>เจ้าหน้าที่คลัง</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRole('admin')}
-                    className={`py-2 px-2 rounded-xl border text-[11px] font-semibold transition flex flex-col items-center justify-center gap-1 ${
-                      role === 'admin'
-                        ? 'bg-amber-600/10 border-amber-500 text-amber-400'
-                        : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-600'
-                    }`}
-                  >
-                    <User className="h-4 w-4" />
-                    <span>แอดมิน</span>
-                  </button>
-                </div>
-              </div>
-
               {/* Rank and Name */}
               <div className="grid grid-cols-3 gap-2">
                 <div className="space-y-1.5">
