@@ -349,7 +349,7 @@ export default function UserProfileModal({
                   <input
                     type="text"
                     required
-                    placeholder="เช่น พลขับ หรือ นายทหารพัสดุ"
+                    placeholder="เช่น ผู้ใช้ หรือ นายทหารพัสดุ"
                     value={position}
                     onChange={(e) => setPosition(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-xl focus:border-emerald-500 outline-none text-white text-xs transition"

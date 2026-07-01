@@ -442,7 +442,7 @@ export default function RecordHistory({ records, inventory }: RecordHistoryProps
               </span>
               <input
                 type="text"
-                placeholder="ค้นหา: เลขกงจักร, ทะเบียนรถ, ชื่อพลขับ, ภารกิจ, เลขที่ใบจ่าย..."
+                placeholder="ค้นหา: เลขกงจักร, ทะเบียนรถ, ชื่อผู้รับ, ภารกิจ, เลขที่ใบจ่าย..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:border-emerald-500 outline-none"
@@ -510,7 +510,7 @@ export default function RecordHistory({ records, inventory }: RecordHistoryProps
                 <th scope="col" className="px-5 py-3.5">วันที่-เวลา</th>
                 <th scope="col" className="px-4 py-3.5">เลขใบเบิก</th>
                 <th scope="col" className="px-4 py-3.5">ทะเบียนรถ / สังกัด</th>
-                <th scope="col" className="px-4 py-3.5">ผู้รับ / พลขับ</th>
+                <th scope="col" className="px-4 py-3.5">ผู้รับ / ผู้ใช้</th>
                 <th scope="col" className="px-4 py-3.5">ประเภทน้ำมัน</th>
                 <th scope="col" className="px-4 py-3.5 text-right">จำนวนลิตร</th>
                 <th scope="col" className="px-5 py-3.5 text-right">ผู้บันทึกจ่าย</th>
@@ -583,7 +583,7 @@ export default function RecordHistory({ records, inventory }: RecordHistoryProps
 
               <div className="bg-slate-900/30 p-2.5 rounded-xl border border-slate-700/40 space-y-1.5 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">ผู้รับ/พลขับ:</span>
+                  <span className="text-slate-400">ผู้รับ/ผู้ใช้:</span>
                   <span className="text-slate-200 font-medium">{rec.driverName}</span>
                 </div>
                 <div className="flex justify-between">

@@ -331,7 +331,7 @@ export default function RecordForm({ currentUser, inventory, onRecordAdded }: Re
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-              ชื่อผู้รับ/พลขับ (Driver/Receiver Name)
+              ชื่อผู้รับ/ผู้ใช้บริการ (Receiver Name)
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">

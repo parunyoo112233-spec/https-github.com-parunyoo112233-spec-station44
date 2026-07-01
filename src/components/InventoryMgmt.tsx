@@ -233,7 +233,7 @@ export default function InventoryMgmt({ currentUser, inventory, onReplenished }:
       ) : (
         <div className="bg-slate-800/40 p-5 rounded-2xl border border-slate-700/40 text-center text-slate-400">
           <Info className="h-5 w-5 mx-auto text-slate-500 mb-2" />
-          <p className="text-xs">พลขับและผู้ใช้บริการทั่วไปสามารถดูปริมาณน้ำมันคงเหลือได้ แต่สงวนสิทธิ์การปรับแก้คลังให้กับเจ้าหน้าที่และผู้ดูแลระบบ</p>
+          <p className="text-xs">ผู้ใช้บริการทั่วไปสามารถดูปริมาณน้ำมันคงเหลือได้ แต่สงวนสิทธิ์การปรับแก้คลังให้กับเจ้าหน้าที่และผู้ดูแลระบบ</p>
         </div>
       )}
 

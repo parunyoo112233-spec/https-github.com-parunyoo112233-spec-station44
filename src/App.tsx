@@ -291,7 +291,7 @@ export default function App() {
             <div className="flex justify-between">
               <span className="text-slate-500">สิทธิ์ที่ขอ:</span>
               <span className="px-1.5 py-0.5 bg-slate-800 text-[10px] text-emerald-400 rounded font-sans uppercase font-bold">
-                {currentUser.role === 'admin' ? 'แอดมิน' : currentUser.role === 'officer' ? 'เจ้าหน้าที่' : 'ผู้ใช้บริการ (พลขับ)'}
+                {currentUser.role === 'admin' ? 'แอดมิน' : currentUser.role === 'officer' ? 'เจ้าหน้าที่' : 'ผู้ใช้บริการ (ผู้ใช้)'}
               </span>
             </div>
             <div className="flex justify-between">
@@ -375,7 +375,7 @@ export default function App() {
                     <Settings className="h-3 w-3 text-slate-400 group-hover:text-white transition" />
                   </p>
                   <p className="text-[10px] text-emerald-400 uppercase font-mono tracking-wider truncate max-w-[180px]" title={currentUser.position}>
-                    สถานะ: {currentUser.role === 'admin' ? 'ผู้ดูแลระบบ' : currentUser.role === 'officer' ? 'เจ้าหน้าที่พัสดุ' : 'พลขับ'}{currentUser.position ? ` (${currentUser.position})` : ''}
+                    สถานะ: {currentUser.role === 'admin' ? 'ผู้ดูแลระบบ' : currentUser.role === 'officer' ? 'เจ้าหน้าที่พัสดุ' : 'ผู้ใช้'}{currentUser.position ? ` (${currentUser.position})` : ''}
                   </p>
                 </div>
               </button>

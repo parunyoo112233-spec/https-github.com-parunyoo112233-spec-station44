@@ -73,7 +73,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           name: demoRole === 'admin' ? 'อนันต์ รักษ์ดี' : (demoRole === 'officer' ? 'สมศักดิ์ มีชัย' : 'สมชาย แข็งแรง'),
           rank: demoRole === 'admin' ? 'พ.อ.' : (demoRole === 'officer' ? 'จ.ส.อ.' : 'ส.ต.'),
           department: demoRole === 'admin' ? 'บก.มทบ.44' : (demoRole === 'officer' ? 'คลังเชื้อเพลิง มทบ.44' : 'ร.25 พัน.1'),
-          position: demoRole === 'admin' ? 'หัวหน้ากองกำลังพล' : (demoRole === 'officer' ? 'เจ้าหน้าที่คลังเชื้อเพลิง' : 'พลขับประจำรถ'),
+          position: demoRole === 'admin' ? 'หัวหน้ากองกำลังพล' : (demoRole === 'officer' ? 'เจ้าหน้าที่คลังเชื้อเพลิง' : 'ผู้ใช้ประจำรถ'),
           phone: '0812345678',
           status: 'active'
         };
@@ -95,7 +95,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           name: demoRole === 'admin' ? 'อนันต์ รักษ์ดี' : (demoRole === 'officer' ? 'สมศักดิ์ มีชัย' : 'สมชาย แข็งแรง'),
           rank: demoRole === 'admin' ? 'พ.อ.' : (demoRole === 'officer' ? 'จ.ส.อ.' : 'ส.ต.'),
           department: demoRole === 'admin' ? 'บก.มทบ.44' : (demoRole === 'officer' ? 'คลังเชื้อเพลิง มทบ.44' : 'ร.25 พัน.1'),
-          position: demoRole === 'admin' ? 'หัวหน้ากองกำลังพล' : (demoRole === 'officer' ? 'เจ้าหน้าที่คลังเชื้อเพลิง' : 'พลขับประจำรถ'),
+          position: demoRole === 'admin' ? 'หัวหน้ากองกำลังพล' : (demoRole === 'officer' ? 'เจ้าหน้าที่คลังเชื้อเพลิง' : 'ผู้ใช้ประจำรถ'),
           phone: '0812345678',
           status: 'active',
           password: demoPassword
@@ -122,7 +122,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             name: demoRole === 'admin' ? 'อนันต์ รักษ์ดี' : (demoRole === 'officer' ? 'สมศักดิ์ มีชัย' : 'สมชาย แข็งแรง'),
             rank: demoRole === 'admin' ? 'พ.อ.' : (demoRole === 'officer' ? 'จ.ส.อ.' : 'ส.ต.'),
             department: demoRole === 'admin' ? 'บก.มทบ.44' : (demoRole === 'officer' ? 'คลังเชื้อเพลิง มทบ.44' : 'ร.25 พัน.1'),
-            position: demoRole === 'admin' ? 'หัวหน้ากองกำลังพล' : (demoRole === 'officer' ? 'เจ้าหน้าที่คลังเชื้อเพลิง' : 'พลขับประจำรถ'),
+            position: demoRole === 'admin' ? 'หัวหน้ากองกำลังพล' : (demoRole === 'officer' ? 'เจ้าหน้าที่คลังเชื้อเพลิง' : 'ผู้ใช้ประจำรถ'),
             phone: '0812345678',
             status: 'active'
           };
@@ -141,7 +141,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               name: demoRole === 'admin' ? 'อนันต์ รักษ์ดี' : (demoRole === 'officer' ? 'สมศักดิ์ มีชัย' : 'สมชาย แข็งแรง'),
               rank: demoRole === 'admin' ? 'พ.อ.' : (demoRole === 'officer' ? 'จ.ส.อ.' : 'ส.ต.'),
               department: demoRole === 'admin' ? 'บก.มทบ.44' : (demoRole === 'officer' ? 'คลังเชื้อเพลิง มทบ.44' : 'ร.25 พัน.1'),
-              position: demoRole === 'admin' ? 'หัวหน้ากองกำลังพล' : (demoRole === 'officer' ? 'เจ้าหน้าที่คลังเชื้อเพลิง' : 'พลขับประจำรถ'),
+              position: demoRole === 'admin' ? 'หัวหน้ากองกำลังพล' : (demoRole === 'officer' ? 'เจ้าหน้าที่คลังเชื้อเพลิง' : 'ผู้ใช้ประจำรถ'),
               phone: '0812345678',
               status: 'active',
               password: demoPassword
@@ -170,7 +170,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               name: demoRole === 'admin' ? 'อนันต์ รักษ์ดี' : (demoRole === 'officer' ? 'สมศักดิ์ มีชัย' : 'สมชาย แข็งแรง'),
               rank: demoRole === 'admin' ? 'พ.อ.' : (demoRole === 'officer' ? 'จ.ส.อ.' : 'ส.ต.'),
               department: demoRole === 'admin' ? 'บก.มทบ.44' : (demoRole === 'officer' ? 'คลังเชื้อเพลิง มทบ.44' : 'ร.25 พัน.1'),
-              position: demoRole === 'admin' ? 'หัวหน้ากองกำลังพล' : (demoRole === 'officer' ? 'เจ้าหน้าที่คลังเชื้อเพลิง' : 'พลขับประจำรถ'),
+              position: demoRole === 'admin' ? 'หัวหน้ากองกำลังพล' : (demoRole === 'officer' ? 'เจ้าหน้าที่คลังเชื้อเพลิง' : 'ผู้ใช้ประจำรถ'),
               phone: '0812345678',
               status: 'active'
             };
@@ -189,7 +189,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               name: demoRole === 'admin' ? 'อนันต์ รักษ์ดี (ทดสอบ)' : (demoRole === 'officer' ? 'สมศักดิ์ มีชัย (ทดสอบ)' : 'สมชาย แข็งแรง (ทดสอบ)'),
               rank: demoRole === 'admin' ? 'พ.อ.' : (demoRole === 'officer' ? 'จ.ส.อ.' : 'ส.ต.'),
               department: demoRole === 'admin' ? 'บก.มทบ.44' : (demoRole === 'officer' ? 'คลังเชื้อเพลิง มทบ.44' : 'ร.25 พัน.1'),
-              position: demoRole === 'admin' ? 'หัวหน้ากองกำลังพล' : (demoRole === 'officer' ? 'เจ้าหน้าที่คลังเชื้อเพลิง' : 'พลขับประจำรถ'),
+              position: demoRole === 'admin' ? 'หัวหน้ากองกำลังพล' : (demoRole === 'officer' ? 'เจ้าหน้าที่คลังเชื้อเพลิง' : 'ผู้ใช้ประจำรถ'),
               phone: '0812345678',
               status: 'active',
               password: demoPassword
@@ -297,7 +297,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               name: email.split('@')[0],
               rank: 'ส.ต.',
               department: 'มทบ.44',
-              position: 'พลขับ',
+              position: 'ผู้ใช้',
             };
             await saveUserProfile(fallbackProfile);
             saveSession(fallbackProfile);
@@ -316,7 +316,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 name: email.split('@')[0],
                 rank: 'ส.ต.',
                 department: 'มทบ.44',
-                position: 'พลขับ',
+                position: 'ผู้ใช้',
                 password: password
               };
               try {
@@ -503,7 +503,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               {/* Position */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-slate-400 uppercase tracking-wider block">
-                  ตำแหน่งหน้าที่ (e.g. พลขับ, นายทหารกำลังพล)
+                  ตำแหน่งหน้าที่ (e.g. ผู้ใช้, นายทหารกำลังพล)
                 </label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
@@ -512,7 +512,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                   <input
                     type="text"
                     required
-                    placeholder="พลขับ หรือ ผู้ควบคุมการจ่าย"
+                    placeholder="ผู้ใช้ หรือ ผู้ควบคุมการจ่าย"
                     value={position}
                     onChange={(e) => setPosition(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:border-emerald-500 outline-none text-white text-sm transition"

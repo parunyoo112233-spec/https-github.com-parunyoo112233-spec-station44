@@ -291,13 +291,13 @@ export default function RequestQueue({
                   </div>
 
                   <div>
-                    <p className="text-slate-400 font-medium">ชื่อผู้ขอ / พลขับ</p>
+                    <p className="text-slate-400 font-medium">ชื่อผู้ขอ / ผู้ใช้</p>
                     <p className="text-sm font-bold text-white mt-1 truncate" title={req.driverName}>{req.driverName}</p>
                   </div>
                 </>
               ) : (
                 <div className="col-span-2">
-                  <p className="text-slate-400 font-medium">ชื่อผู้ขอ / พลขับ</p>
+                  <p className="text-slate-400 font-medium">ชื่อผู้ขอ / ผู้ใช้</p>
                   <p className="text-sm font-bold text-white mt-1 truncate" title={req.driverName}>{req.driverName}</p>
                 </div>
               )}
@@ -371,7 +371,7 @@ export default function RequestQueue({
             <p className="text-xs text-slate-500 mt-1">
               {currentUser.role === 'user' 
                 ? 'คำขอที่คุณส่งทั้งหมดจะถูกแสดงขึ้นที่นี่' 
-                : 'เมื่อพลขับเบิกออนไลน์ ใบคำขอเติมน้ำมันจะแสดงขึ้นที่นี่เพื่อตรวจสอบและอนุมัติ'}
+                : 'เมื่อผู้ใช้เบิกออนไลน์ ใบคำขอเติมน้ำมันจะแสดงขึ้นที่นี่เพื่อตรวจสอบและอนุมัติ'}
             </p>
           </div>
         )}

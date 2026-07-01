@@ -110,7 +110,7 @@ export default function RequestForm({ currentUser, inventory, onRequestSubmitted
         </div>
         <div>
           <h2 className="text-lg font-bold text-white">ยื่นใบคำขอเบิกน้ำมันเชื้อเพลิง</h2>
-          <p className="text-xs text-slate-400">สำหรับพลขับ/ผู้ใช้บริการ ส่งใบเบิกออนไลน์เพื่อรับบริการเติมน้ำมันที่สถานี</p>
+          <p className="text-xs text-slate-400">สำหรับผู้ใช้บริการ ส่งใบเบิกออนไลน์เพื่อรับบริการเติมน้ำมันที่สถานี</p>
         </div>
       </div>
 
@@ -203,7 +203,7 @@ export default function RequestForm({ currentUser, inventory, onRequestSubmitted
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-              ชื่อผู้รับ/พลขับ <span className="text-red-400">*</span>
+              ชื่อผู้รับ/ผู้ใช้ <span className="text-red-400">*</span>
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">

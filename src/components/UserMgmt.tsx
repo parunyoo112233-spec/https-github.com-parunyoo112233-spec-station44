@@ -153,7 +153,7 @@ export default function UserMgmt({ currentUser }: UserMgmtProps) {
             ระบบจัดการบทบาทและผู้ใช้งานระบบ
           </h2>
           <p className="text-sm text-slate-400">
-            กำหนดสิทธิ์การใช้งานสำหรับ แอดมิน, เจ้าหน้าที่คลัง, และผู้ใช้บริการ (พลขับ)
+            กำหนดสิทธิ์การใช้งานสำหรับ แอดมิน, เจ้าหน้าที่คลัง, และผู้ใช้บริการ (ผู้ใช้)
           </p>
         </div>
         <div className="text-xs bg-slate-800 border border-slate-700/60 px-3 py-1.5 rounded-xl text-slate-400 font-mono">
@@ -286,7 +286,7 @@ export default function UserMgmt({ currentUser }: UserMgmtProps) {
                                 ? 'bg-emerald-400/10 text-emerald-400'
                                 : 'bg-blue-400/10 text-blue-400'
                           }`}>
-                            {userItem.role === 'admin' ? 'แอดมิน' : userItem.role === 'officer' ? 'เจ้าหน้าที่' : 'ผู้ใช้บริการ (พลขับ)'}
+                             {userItem.role === 'admin' ? 'แอดมิน' : userItem.role === 'officer' ? 'เจ้าหน้าที่' : 'ผู้ใช้บริการ (ผู้ใช้)'}
                           </span>
                         </div>
                       </div>

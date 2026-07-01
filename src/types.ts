@@ -13,7 +13,7 @@ export interface UserProfile {
   rank: string;       // ยศ (e.g. พลทหาร, ส.ต., ส.อ., จ.ส.อ., ร.ท., พ.ต.)
   department: string; // สังกัด/หน่วยงาน (e.g. มทบ.44, พัน.ส.มทบ.44, ร.25)
   phone?: string;
-  position?: string;  // ตำแหน่งหน้าที่ (e.g. พลขับ, นายทหารส่งกำลัง, ผู้บังคับกองร้อย)
+  position?: string;  // ตำแหน่งหน้าที่ (e.g. ผู้ใช้, นายทหารส่งกำลัง, ผู้บังคับกองร้อย)
   status?: 'pending' | 'active' | 'disabled'; // สถานะไอดี (pending = รออนุมัติเปิดใช้งาน, active = เปิดใช้งานแล้ว, disabled = ระงับการใช้งาน)
   password?: string;  // รหัสผ่านสำหรับบัญชีทดสอบ/จำลอง
 }

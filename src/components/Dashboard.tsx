@@ -654,7 +654,7 @@ export default function Dashboard({
                     </p>
                     <p className="text-slate-300 flex items-center gap-1.5 truncate">
                       <Truck className="h-3 w-3 text-slate-400 shrink-0" />
-                      พลขับ: <span className="text-slate-200 font-sans">{latestPendingRequest.driverName}</span>
+                      ผู้เบิก: <span className="text-slate-200 font-sans">{latestPendingRequest.driverName}</span>
                     </p>
                     <div className="flex justify-between items-center text-[10px] bg-slate-950/60 px-2 py-1 rounded border border-slate-800">
                       <span className="text-slate-400 truncate max-w-[100px]">{latestPendingRequest.fuelType}</span>
@@ -698,7 +698,7 @@ export default function Dashboard({
             <div className="border-t border-slate-800/80 pt-3 mt-1 text-[10px] text-slate-400 space-y-1.5 bg-slate-900/20 p-2.5 rounded-xl border border-slate-800/40">
               <p className="font-bold text-slate-300 flex items-center gap-1">
                 <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                คำแนะนำสำหรับพลขับ
+                คำแนะนำสำหรับผู้ใช้
               </p>
               <p className="leading-relaxed">
                 กรุณาระบุยอดเลขไมล์ตามจริงเพื่อความถูกต้องในการติดตามอัตราบริโภคน้ำมันของกองทัพ
