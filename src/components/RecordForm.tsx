@@ -48,7 +48,7 @@ export default function RecordForm({ currentUser, inventory, onRecordAdded }: Re
   }, []);
 
   const matchedUnitCredit = unitCredits.find(
-    uc => uc.unit.toLowerCase() === unit.trim().toLowerCase()
+    uc => (uc.unit || '').toLowerCase() === (unit || '').trim().toLowerCase()
   );
 
   // Get specific quota for current selected fuelType

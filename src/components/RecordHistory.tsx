@@ -72,11 +72,11 @@ export default function RecordHistory({ records, inventory }: RecordHistoryProps
       // 4. Search Query (Vehicle, Driver, OrderNo, Officer)
       if (searchQuery.trim() !== '') {
         const query = searchQuery.toLowerCase();
-        const matchVehicle = rec.vehicleNo.toLowerCase().includes(query);
-        const matchDriver = rec.driverName.toLowerCase().includes(query);
-        const matchOrder = rec.orderNo.toLowerCase().includes(query);
-        const matchOfficer = rec.officerName.toLowerCase().includes(query);
-        const matchPurpose = rec.purpose.toLowerCase().includes(query);
+        const matchVehicle = (rec.vehicleNo || '').toLowerCase().includes(query);
+        const matchDriver = (rec.driverName || '').toLowerCase().includes(query);
+        const matchOrder = (rec.orderNo || '').toLowerCase().includes(query);
+        const matchOfficer = (rec.officerName || '').toLowerCase().includes(query);
+        const matchPurpose = (rec.purpose || '').toLowerCase().includes(query);
 
         if (!matchVehicle && !matchDriver && !matchOrder && !matchOfficer && !matchPurpose) return false;
       }
@@ -539,9 +539,9 @@ export default function RecordHistory({ records, inventory }: RecordHistoryProps
                     </span>
                   </td>
                   <td className="px-4 py-4 text-right font-bold text-white text-base whitespace-nowrap">
-                    {rec.volume.toLocaleString()} L
-                    {rec.odometer > 0 && (
-                      <span className="text-[10px] text-slate-400 font-normal block font-mono">ไมล์ {rec.odometer.toLocaleString()} กม.</span>
+                    {(rec.volume ?? 0).toLocaleString()} L
+                    {(rec.odometer ?? 0) > 0 && (
+                      <span className="text-[10px] text-slate-400 font-normal block font-mono">ไมล์ {(rec.odometer ?? 0).toLocaleString()} กม.</span>
                     )}
                   </td>
                   <td className="px-5 py-4 text-right text-xs text-slate-400">
@@ -594,10 +594,10 @@ export default function RecordHistory({ records, inventory }: RecordHistoryProps
                   <span className="text-slate-400">เลขที่สั่งเบิก:</span>
                   <span className="text-slate-200 font-mono">{rec.orderNo}</span>
                 </div>
-                {rec.odometer > 0 && (
+                {(rec.odometer ?? 0) > 0 && (
                   <div className="flex justify-between">
                     <span className="text-slate-400">เลขไมล์รถ:</span>
-                    <span className="text-slate-200 font-mono">{rec.odometer.toLocaleString()} กม.</span>
+                    <span className="text-slate-200 font-mono">{(rec.odometer ?? 0).toLocaleString()} กม.</span>
                   </div>
                 )}
                 <div className="flex justify-between pt-1 border-t border-slate-700/30">

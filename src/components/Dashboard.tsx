@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
   FuelInventory, 
   FuelRecord, 
@@ -35,8 +35,14 @@ import {
   Shield,
   Truck,
   Layers,
-  LineChart
+  LineChart,
+  Zap,
+  Check,
+  CheckCircle,
+  Loader2,
+  XCircle
 } from 'lucide-react';
+import { approveFuelRequest } from '../lib/db-helpers';
 
 interface DashboardProps {
   inventory: FuelInventory[];
@@ -53,6 +59,46 @@ export default function Dashboard({
   onNavigateToTab,
   currentUser
 }: DashboardProps) {
+  const [isApproving, setIsApproving] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
+  const latestPendingRequest = useMemo(() => {
+    return requests
+      .filter(r => r.status === 'pending')
+      .sort((a, b) => b.createdAt - a.createdAt)[0] || null;
+  }, [requests]);
+
+  const handleQuickApprove = async (request: FuelRequest) => {
+    if (!currentUser) return;
+    setIsApproving(request.id);
+    setActionError(null);
+    setActionSuccess(null);
+
+    // Stock level pre-check
+    const fuelStock = inventory.find(inv => inv.fuelType === request.fuelType);
+    if (fuelStock && request.volume > fuelStock.currentStock) {
+      setActionError(`ยอดเบิก (${request.volume} ลิตร) สูงกว่ายอดคงเหลือ (${(fuelStock.currentStock ?? 0).toLocaleString()} ลิตร)`);
+      setIsApproving(null);
+      return;
+    }
+
+    try {
+      await approveFuelRequest(
+        request.id,
+        currentUser.uid,
+        `${currentUser.rank} ${currentUser.name}`
+      );
+      setActionSuccess(`อนุมัติคำขอของ ${request.unit} (${request.volume} ล.) สำเร็จ!`);
+      setTimeout(() => {
+        setActionSuccess(null);
+      }, 4000);
+    } catch (err: any) {
+      setActionError('อนุมัติล้มเหลว: ' + err.message);
+    } finally {
+      setIsApproving(null);
+    }
+  };
   
   // 1. Calculate Key Metrics
   const totalDispensed = useMemo(() => {
@@ -294,20 +340,161 @@ export default function Dashboard({
         </div>
       </section>
 
-      {/* 4. Quick Action (Small) [Grid Span: 3 Cols] */}
+      {/* 4. Quick Actions Widget (Enhanced) [Grid Span: 3 Cols] */}
       <section 
-        id="bento_quick_action"
-        onClick={() => onNavigateToTab(userRole === 'officer' ? 'record' : 'request')}
-        className="lg:col-span-3 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-slate-700/80 p-5 flex items-center gap-4 cursor-pointer transition shadow-lg group"
+        id="bento_quick_actions"
+        className="lg:col-span-3 bg-slate-800/40 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between shadow-lg"
       >
-        <div className="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-xl flex items-center justify-center transition group-hover:scale-105 duration-200">
-          <PlusCircle className="w-6 h-6" />
-        </div>
-        <div>
-          <p className="text-white font-bold group-hover:text-emerald-300 transition text-sm">
-            {userRole === 'officer' ? 'บันทึกจ่ายน้ำมันใหม่' : 'เขียนคำขอใหม่'}
-          </p>
-          <p className="text-slate-400 text-[10px] uppercase font-mono tracking-wider mt-0.5">Quick Dispatch Log</p>
+        <div className="space-y-3.5 w-full">
+          {/* Section Header */}
+          <div className="flex items-center justify-between border-b border-slate-800/60 pb-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+              <Zap className="h-4 w-4 text-amber-400" />
+              การดำเนินการด่วน
+            </h3>
+            <span className="text-[9px] bg-slate-800/60 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700/50 uppercase font-mono font-bold">
+              Quick Actions
+            </span>
+          </div>
+
+          {/* Error and Success Notifications */}
+          {actionError && (
+            <div className="flex items-start gap-1.5 p-2 bg-red-950/40 border border-red-500/20 rounded-xl text-[10px] text-red-300 animate-fadeIn">
+              <XCircle className="h-3.5 w-3.5 text-red-400 shrink-0 mt-0.5" />
+              <p className="leading-tight">{actionError}</p>
+            </div>
+          )}
+          {actionSuccess && (
+            <div className="flex items-start gap-1.5 p-2 bg-emerald-950/40 border border-emerald-500/20 rounded-xl text-[10px] text-emerald-300 animate-fadeIn">
+              <CheckCircle className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+              <p className="leading-tight">{actionSuccess}</p>
+            </div>
+          )}
+
+          {/* Action Button Grid */}
+          <div className="grid grid-cols-2 gap-2">
+            {(userRole === 'admin' || userRole === 'officer') ? (
+              <>
+                {/* 1. Dispatch Fuel */}
+                <button
+                  onClick={() => onNavigateToTab('record')}
+                  className="flex flex-col items-center justify-center p-2.5 bg-slate-900/60 hover:bg-slate-900 border border-emerald-500/10 hover:border-emerald-500/40 hover:shadow-emerald-950/20 hover:shadow-md rounded-xl transition-all duration-200 group text-center cursor-pointer"
+                >
+                  <PlusCircle className="h-4.5 w-4.5 text-emerald-400 group-hover:scale-110 transition mb-1" />
+                  <span className="text-[10px] font-bold text-white truncate w-full">
+                    บันทึกจ่ายน้ำมัน
+                  </span>
+                </button>
+
+                {/* 2. Fuel Delivery / Inventory */}
+                <button
+                  onClick={() => onNavigateToTab('inventory')}
+                  className="flex flex-col items-center justify-center p-2.5 bg-slate-900/60 hover:bg-slate-900 border border-blue-500/10 hover:border-blue-500/40 hover:shadow-blue-950/20 hover:shadow-md rounded-xl transition-all duration-200 group text-center cursor-pointer"
+                >
+                  <Database className="h-4.5 w-4.5 text-blue-400 group-hover:scale-110 transition mb-1" />
+                  <span className="text-[10px] font-bold text-white truncate w-full">
+                    รับน้ำมันเข้าคลัง
+                  </span>
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Driver Actions */}
+                <button
+                  onClick={() => onNavigateToTab('request')}
+                  className="flex flex-col items-center justify-center p-2.5 bg-slate-900/60 hover:bg-slate-900 border border-blue-500/10 hover:border-blue-500/40 rounded-xl transition-all duration-200 group text-center cursor-pointer"
+                >
+                  <PlusCircle className="h-4.5 w-4.5 text-blue-400 group-hover:scale-110 transition mb-1" />
+                  <span className="text-[10px] font-bold text-white truncate w-full">
+                    เขียนคำขอใหม่
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => onNavigateToTab('requests')}
+                  className="flex flex-col items-center justify-center p-2.5 bg-slate-900/60 hover:bg-slate-900 border border-amber-500/10 hover:border-amber-500/40 rounded-xl transition-all duration-200 group text-center cursor-pointer"
+                >
+                  <Clock className="h-4.5 w-4.5 text-amber-400 group-hover:scale-110 transition mb-1" />
+                  <span className="text-[10px] font-bold text-white truncate w-full">
+                    ติดตามคิวคำขอ
+                  </span>
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Quick Approval Widget for Admin / Officer */}
+          {(userRole === 'admin' || userRole === 'officer') && (
+            <div className="border-t border-slate-800/80 pt-3 mt-1">
+              {latestPendingRequest ? (
+                <div className="bg-slate-900/80 rounded-xl p-2.5 border border-amber-500/20 hover:border-amber-500/35 transition-all duration-200 shadow-inner">
+                  <div className="flex justify-between items-start mb-1.5">
+                    <span className="text-[8px] bg-amber-500/10 text-amber-400 px-1 py-0.5 rounded border border-amber-500/20 font-bold uppercase tracking-wider font-mono">
+                      คำขอเบิกล่าสุด
+                    </span>
+                    <span className="text-[9px] text-slate-500 font-mono">
+                      {latestPendingRequest.date}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-1 text-[11px] mb-2.5">
+                    <p className="text-slate-300 font-bold flex items-center gap-1.5 truncate">
+                      <Shield className="h-3 w-3 text-emerald-400 shrink-0" />
+                      หน่วย: <span className="text-white font-sans">{latestPendingRequest.unit}</span>
+                    </p>
+                    <p className="text-slate-300 flex items-center gap-1.5 truncate">
+                      <Truck className="h-3 w-3 text-slate-400 shrink-0" />
+                      พลขับ: <span className="text-slate-200 font-sans">{latestPendingRequest.driverName}</span>
+                    </p>
+                    <div className="flex justify-between items-center text-[10px] bg-slate-950/60 px-2 py-1 rounded border border-slate-800">
+                      <span className="text-slate-400 truncate max-w-[100px]">{latestPendingRequest.fuelType}</span>
+                      <span className="font-extrabold text-amber-500 font-mono text-[11px]">{(latestPendingRequest.volume ?? 0).toLocaleString()} ลิตร</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-1.5">
+                    <button
+                      onClick={() => handleQuickApprove(latestPendingRequest)}
+                      disabled={isApproving !== null}
+                      className="flex-1 py-1.5 px-2 bg-emerald-500 hover:bg-emerald-400 disabled:bg-emerald-800/60 text-slate-950 font-bold text-[10.5px] rounded-lg transition-all duration-150 flex items-center justify-center gap-1 cursor-pointer shadow shadow-emerald-500/15"
+                    >
+                      {isApproving === latestPendingRequest.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin text-slate-950" />
+                      ) : (
+                        <Check className="h-3 w-3" />
+                      )}
+                      อนุมัติทันที
+                    </button>
+                    <button
+                      onClick={() => onNavigateToTab('requests')}
+                      className="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[10px] rounded-lg transition-all duration-150 flex items-center justify-center gap-1 cursor-pointer border border-slate-700/60"
+                    >
+                      ดูทั้งหมด
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-slate-900/40 rounded-xl p-3 border border-slate-800 text-center flex flex-col items-center justify-center py-5">
+                  <CheckCircle className="h-6 w-6 text-slate-500 mb-1.5" />
+                  <p className="text-[10px] font-bold text-slate-400">เรียบร้อยทั้งหมด</p>
+                  <p className="text-[9px] text-slate-500 mt-0.5">ไม่มีคำขอค้างอนุมัติในระบบ</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Simple Informative Tips for Drivers */}
+          {userRole === 'user' && (
+            <div className="border-t border-slate-800/80 pt-3 mt-1 text-[10px] text-slate-400 space-y-1.5 bg-slate-900/20 p-2.5 rounded-xl border border-slate-800/40">
+              <p className="font-bold text-slate-300 flex items-center gap-1">
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                คำแนะนำสำหรับพลขับ
+              </p>
+              <p className="leading-relaxed">
+                กรุณาระบุยอดเลขไมล์ตามจริงเพื่อความถูกต้องในการติดตามอัตราบริโภคน้ำมันของกองทัพ
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -477,7 +664,7 @@ export default function Dashboard({
                       </span>
                     </td>
                     <td className="px-6 py-3 font-extrabold text-slate-100 font-mono text-sm">
-                      {rec.volume.toLocaleString(undefined, { minimumFractionDigits: 1 })}
+                      {(rec.volume ?? 0).toLocaleString(undefined, { minimumFractionDigits: 1 })}
                     </td>
                     <td className="px-6 py-3 text-slate-400 font-medium">
                       {rec.officerName || 'เจ้าหน้าที่'}

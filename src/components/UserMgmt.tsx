@@ -128,7 +128,7 @@ export default function UserMgmt({ currentUser }: UserMgmtProps) {
   // Filtered users list
   const filteredUsers = users.filter((u) => {
     const matchesSearch = 
-      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (u.email && u.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (u.department && u.department.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (u.position && u.position.toLowerCase().includes(searchQuery.toLowerCase())) ||
