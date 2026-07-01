@@ -63,15 +63,13 @@ export default function App() {
     };
     initApp();
 
-    // Check if we have a locally-saved demo/fallback session
+    // Setup initial cache profile for instant rendering, then let auth listener take over
     const savedLocalSession = localStorage.getItem('demo_user_profile') || sessionStorage.getItem('demo_user_profile');
     if (savedLocalSession) {
       try {
         const localProfile = JSON.parse(savedLocalSession);
         if (localProfile && localProfile.uid) {
           setCurrentUser(localProfile);
-          setAuthChecking(false);
-          return;
         }
       } catch (e) {
         console.error('Failed parsing local fallback session', e);
@@ -85,16 +83,20 @@ export default function App() {
         const profile = await getUserProfile(firebaseUser.uid);
         if (profile) {
           setCurrentUser(profile);
+          // Keep cache in sync
+          localStorage.setItem('demo_user_profile', JSON.stringify(profile));
         } else {
           // If no profile (extremely rare), set a driver fallback profile
-          setCurrentUser({
+          const fallbackProfile: UserProfile = {
             uid: firebaseUser.uid,
             email: firebaseUser.email || '',
             role: 'user',
             name: firebaseUser.email?.split('@')[0] || 'ผู้ใช้งาน',
             rank: 'ส.ต.',
             department: 'มทบ.44',
-          });
+          };
+          setCurrentUser(fallbackProfile);
+          localStorage.setItem('demo_user_profile', JSON.stringify(fallbackProfile));
         }
       } else {
         const localSession = localStorage.getItem('demo_user_profile') || sessionStorage.getItem('demo_user_profile');
@@ -629,6 +631,14 @@ export default function App() {
           currentUser={currentUser}
           onProfileUpdated={(updatedProfile) => {
             setCurrentUser(updatedProfile);
+            // Sync with local session cache
+            if (localStorage.getItem('demo_user_profile')) {
+              localStorage.setItem('demo_user_profile', JSON.stringify(updatedProfile));
+            } else if (sessionStorage.getItem('demo_user_profile')) {
+              sessionStorage.setItem('demo_user_profile', JSON.stringify(updatedProfile));
+            } else {
+              localStorage.setItem('demo_user_profile', JSON.stringify(updatedProfile));
+            }
           }}
         />
       )}

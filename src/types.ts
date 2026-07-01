@@ -15,6 +15,7 @@ export interface UserProfile {
   phone?: string;
   position?: string;  // ตำแหน่งหน้าที่ (e.g. พลขับ, นายทหารส่งกำลัง, ผู้บังคับกองร้อย)
   status?: 'pending' | 'active' | 'disabled'; // สถานะไอดี (pending = รออนุมัติเปิดใช้งาน, active = เปิดใช้งานแล้ว, disabled = ระงับการใช้งาน)
+  password?: string;  // รหัสผ่านสำหรับบัญชีทดสอบ/จำลอง
 }
 
 export interface FuelRecord {

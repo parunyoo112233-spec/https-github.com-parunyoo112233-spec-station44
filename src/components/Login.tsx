@@ -97,7 +97,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           department: demoRole === 'admin' ? 'บก.มทบ.44' : (demoRole === 'officer' ? 'คลังเชื้อเพลิง มทบ.44' : 'ร.25 พัน.1'),
           position: demoRole === 'admin' ? 'หัวหน้ากองกำลังพล' : (demoRole === 'officer' ? 'เจ้าหน้าที่คลังเชื้อเพลิง' : 'พลขับประจำรถ'),
           phone: '0812345678',
-          status: 'active'
+          status: 'active',
+          password: demoPassword
         };
         try {
           await saveUserProfile(profile);
@@ -142,7 +143,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               department: demoRole === 'admin' ? 'บก.มทบ.44' : (demoRole === 'officer' ? 'คลังเชื้อเพลิง มทบ.44' : 'ร.25 พัน.1'),
               position: demoRole === 'admin' ? 'หัวหน้ากองกำลังพล' : (demoRole === 'officer' ? 'เจ้าหน้าที่คลังเชื้อเพลิง' : 'พลขับประจำรถ'),
               phone: '0812345678',
-              status: 'active'
+              status: 'active',
+              password: demoPassword
             };
             try {
               await saveUserProfile(profile);
@@ -189,7 +191,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               department: demoRole === 'admin' ? 'บก.มทบ.44' : (demoRole === 'officer' ? 'คลังเชื้อเพลิง มทบ.44' : 'ร.25 พัน.1'),
               position: demoRole === 'admin' ? 'หัวหน้ากองกำลังพล' : (demoRole === 'officer' ? 'เจ้าหน้าที่คลังเชื้อเพลิง' : 'พลขับประจำรถ'),
               phone: '0812345678',
-              status: 'active'
+              status: 'active',
+              password: demoPassword
             };
             try {
               await saveUserProfile(profile);
@@ -260,7 +263,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               department: department,
               position: position,
               phone: phone || '',
-              status: 'pending' // pending approval
+              status: 'pending', // pending approval
+              password: password
             };
             try {
               await saveUserProfile(profile);
@@ -313,11 +317,18 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 rank: 'ส.ต.',
                 department: 'มทบ.44',
                 position: 'พลขับ',
+                password: password
               };
               try {
                 await saveUserProfile(profile);
               } catch (dbErr) {
                 console.error("Firestore save failed in fallback", dbErr);
+              }
+            } else {
+              if (profile.password && profile.password !== password) {
+                setError('รหัสผ่านไม่ถูกต้อง (บัญชีจำลอง)');
+                setLoading(false);
+                return;
               }
             }
             saveSession(profile);

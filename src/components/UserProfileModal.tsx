@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { UserProfile } from '../types';
 import { 
@@ -84,11 +84,9 @@ export default function UserProfileModal({
         phone: phone.trim()
       };
 
-      if (!isMockUser) {
-        // Save to Firestore
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userDocRef, updatedData);
-      }
+      // Save to Firestore using setDoc with merge to support both mock and real users
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      await setDoc(userDocRef, updatedData, { merge: true });
 
       // Merge and trigger parent state update
       const updatedProfile: UserProfile = {
@@ -111,12 +109,6 @@ export default function UserProfileModal({
     setError('');
     setSuccess('');
     setLoading(true);
-
-    if (isMockUser) {
-      setError('บัญชีผู้ใช้ทดสอบไม่สามารถเปลี่ยนรหัสผ่านจริงบนระบบ Firebase ได้');
-      setLoading(false);
-      return;
-    }
 
     if (!currentPassword) {
       setError('กรุณากรอกรหัสผ่านปัจจุบันเพื่อยืนยันตัวตน');
@@ -142,6 +134,39 @@ export default function UserProfileModal({
       return;
     }
 
+    if (isMockUser) {
+      try {
+        const expectedPassword = currentUser.password || 'password123';
+        if (currentPassword !== expectedPassword) {
+          setError('รหัสผ่านปัจจุบันไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง');
+          setLoading(false);
+          return;
+        }
+
+        // Save mock password to Firestore
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        await setDoc(userDocRef, { password: newPassword }, { merge: true });
+
+        // Update local state
+        const updatedProfile = {
+          ...currentUser,
+          password: newPassword
+        };
+        onProfileUpdated(updatedProfile);
+
+        setSuccess('เปลี่ยนรหัสผ่านใหม่สำเร็จแล้ว (บันทึกในระบบจำลอง)');
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } catch (err: any) {
+        console.error('Error changing mock password:', err);
+        setError('เกิดข้อผิดพลาดในการบันทึกรหัสผ่านใหม่: ' + (err.message || err));
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     try {
       const user = auth.currentUser;
       if (!user || !user.email) {
@@ -154,6 +179,17 @@ export default function UserProfileModal({
 
       // Update password
       await updatePassword(user, newPassword);
+
+      // Also persist password to firestore for consistency/sync
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      await setDoc(userDocRef, { password: newPassword }, { merge: true });
+
+      // Update local state
+      const updatedProfile = {
+        ...currentUser,
+        password: newPassword
+      };
+      onProfileUpdated(updatedProfile);
 
       setSuccess('เปลี่ยนรหัสผ่านใหม่สำเร็จแล้ว');
       setCurrentPassword('');
@@ -364,7 +400,7 @@ export default function UserProfileModal({
               {isMockUser && (
                 <div className="bg-amber-500/10 border border-amber-500/30 text-amber-400 p-3.5 rounded-xl text-xs flex items-start gap-2">
                   <ShieldAlert className="h-4.5 w-4.5 flex-shrink-0 mt-0.5" />
-                  <span>นี่คือบัญชีจำลองสำหรับการทดสอบระบบ ไม่สามารถเปลี่ยนรหัสผ่านใน Firebase Auth จริงได้</span>
+                  <span>นี่คือบัญชีจำลองสำหรับการทดสอบระบบ รหัสผ่านใหม่จะถูกบันทึกไว้ในฐานข้อมูลจำลอง Firestore ของท่าน</span>
                 </div>
               )}
 
@@ -380,7 +416,6 @@ export default function UserProfileModal({
                   <input
                     type="password"
                     required
-                    disabled={isMockUser}
                     placeholder="ป้อนรหัสผ่านปัจจุบันเพื่อยืนยันตน"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
@@ -401,7 +436,6 @@ export default function UserProfileModal({
                   <input
                     type="password"
                     required
-                    disabled={isMockUser}
                     placeholder="รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
@@ -422,7 +456,6 @@ export default function UserProfileModal({
                   <input
                     type="password"
                     required
-                    disabled={isMockUser}
                     placeholder="ยืนยันรหัสผ่านใหม่อีกครั้ง"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -434,8 +467,8 @@ export default function UserProfileModal({
               <div className="pt-2">
                 <button
                   type="submit"
-                  disabled={loading || isMockUser}
-                  className="w-full py-2.5 px-4 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={loading}
+                  className="w-full py-2.5 px-4 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10 disabled:opacity-50"
                 >
                   {loading ? (
                     <>
