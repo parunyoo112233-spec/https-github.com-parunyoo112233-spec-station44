@@ -40,7 +40,9 @@ import {
   Check,
   CheckCircle,
   Loader2,
-  XCircle
+  XCircle,
+  User,
+  FileCheck
 } from 'lucide-react';
 import { approveFuelRequest } from '../lib/db-helpers';
 
@@ -63,11 +65,65 @@ export default function Dashboard({
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
+  const userRole = currentUser?.role || 'user';
+  const [activeTab, setActiveTab] = useState<'my' | 'all'>(userRole === 'user' ? 'my' : 'all');
+
   const latestPendingRequest = useMemo(() => {
     return requests
       .filter(r => r.status === 'pending')
       .sort((a, b) => b.createdAt - a.createdAt)[0] || null;
   }, [requests]);
+
+  const myRecentTransactions = useMemo(() => {
+    if (!currentUser) return [];
+
+    const nameQuery = (currentUser.name || '').trim().toLowerCase();
+    
+    // Filter records (completed)
+    const myRecords = records.filter(rec => {
+      const driver = (rec.driverName || '').trim().toLowerCase();
+      return nameQuery ? driver.includes(nameQuery) : false;
+    }).map(rec => ({
+      id: rec.id,
+      type: 'record' as const,
+      date: rec.date,
+      time: rec.time || '',
+      vehicleNo: rec.vehicleNo,
+      fuelType: rec.fuelType,
+      volume: rec.volume,
+      odometer: rec.odometer || 0,
+      status: 'approved' as const,
+      purpose: rec.purpose || '',
+      rejectedReason: '',
+      officerOrApprover: rec.officerName || 'เจ้าหน้าที่คลัง',
+      createdAt: rec.createdAt
+    }));
+
+    // Filter requests (pending or rejected)
+    const myRequests = requests.filter(req => {
+      const isRequestedByMe = req.requestedBy === currentUser.uid;
+      const driver = (req.driverName || '').trim().toLowerCase();
+      const isDriverMe = nameQuery ? driver.includes(nameQuery) : false;
+      return (isRequestedByMe || isDriverMe) && req.status !== 'approved';
+    }).map(req => ({
+      id: req.id,
+      type: 'request' as const,
+      date: req.date,
+      time: '',
+      vehicleNo: req.vehicleNo,
+      fuelType: req.fuelType,
+      volume: req.volume,
+      odometer: req.odometer || 0,
+      status: req.status,
+      purpose: req.purpose || '',
+      rejectedReason: req.rejectedReason || '',
+      officerOrApprover: req.status === 'rejected' ? (req.approvedByName || 'เจ้าหน้าที่คลัง') : '',
+      createdAt: req.createdAt
+    }));
+
+    // Combine and sort by createdAt descending
+    return [...myRecords, ...myRequests].sort((a, b) => b.createdAt - a.createdAt);
+  }, [records, requests, currentUser]);
 
   const handleQuickApprove = async (request: FuelRequest) => {
     if (!currentUser) return;
@@ -246,8 +302,6 @@ export default function Dashboard({
   };
 
   const PIE_COLORS = ['#10B981', '#059669', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899'];
-
-  const userRole = currentUser?.role || 'user';
 
   return (
     <div id="dashboard_view" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4">
@@ -619,11 +673,40 @@ export default function Dashboard({
 
       {/* 8. Recent Transaction Table [Grid Span: 9 Cols] */}
       <section id="bento_transaction_table" className="lg:col-span-9 bg-[#111827]/40 rounded-2xl border border-slate-700/80 flex flex-col overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-slate-800/80 flex justify-between items-center bg-slate-800/40">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-            <span className="w-1.5 h-4 bg-emerald-500 rounded-full"></span>
-            บันทึกรายการล่าสุด (Recent Dispatches)
-          </h3>
+        <div className="p-4 border-b border-slate-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-800/40">
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+              <span className="w-1.5 h-4 bg-emerald-500 rounded-full"></span>
+              ประวัติรายการเบิกจ่ายน้ำมัน
+            </h3>
+            
+            {/* Tab Controls */}
+            <div className="flex bg-slate-900/60 p-0.5 rounded-lg border border-slate-700/40">
+              <button
+                onClick={() => setActiveTab('my')}
+                className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1 cursor-pointer ${
+                  activeTab === 'my'
+                    ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <User className="h-3 w-3" />
+                ของฉัน ({myRecentTransactions.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('all')}
+                className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1 cursor-pointer ${
+                  activeTab === 'all'
+                    ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Layers className="h-3 w-3" />
+                ทั้งหมด ({records.length})
+              </button>
+            </div>
+          </div>
+
           <button 
             onClick={() => onNavigateToTab('records')}
             className="text-[10px] bg-slate-800 hover:bg-slate-700 border border-slate-700/60 text-slate-300 px-3 py-1.5 rounded-lg transition-all cursor-pointer font-medium"
@@ -631,53 +714,154 @@ export default function Dashboard({
             ดูรายงานทั้งหมด
           </button>
         </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead className="text-[10px] text-slate-400 uppercase border-b border-slate-800/80 bg-slate-900/60">
               <tr>
                 <th className="px-6 py-3 font-semibold tracking-wider">วัน-เวลา</th>
-                <th className="px-6 py-3 font-semibold tracking-wider">ทะเบียน/สังกัด</th>
-                <th className="px-6 py-3 font-semibold tracking-wider">ประเภทน้ำมัน</th>
-                <th className="px-6 py-3 font-semibold tracking-wider">จำนวน (ลิตร)</th>
-                <th className="px-6 py-3 font-semibold tracking-wider">เจ้าหน้าที่ผู้จ่าย</th>
+                <th className="px-6 py-3 font-semibold tracking-wider">ยานพาหนะ/ภารกิจ</th>
+                <th className="px-6 py-3 font-semibold tracking-wider">ประเภทน้ำมัน/เลขไมล์</th>
+                <th className="px-6 py-3 font-semibold tracking-wider">จำนวนเบิก (ลิตร)</th>
+                <th className="px-6 py-3 font-semibold tracking-wider">
+                  {activeTab === 'my' ? 'สถานะ / ผู้จ่าย' : 'เจ้าหน้าที่ผู้จ่าย'}
+                </th>
               </tr>
             </thead>
             <tbody className="text-xs divide-y divide-slate-800/50">
-              {records.slice(0, 5).map((rec) => {
-                const isDiesel = rec.fuelType.includes('ดีเซล');
-                const badgeClass = isDiesel 
-                  ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
-                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+              {activeTab === 'my' ? (
+                <>
+                  {myRecentTransactions.slice(0, 5).map((item) => {
+                    const isDiesel = item.fuelType.includes('ดีเซล');
+                    const badgeClass = isDiesel 
+                      ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
+                      : 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
 
-                return (
-                  <tr key={rec.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="px-6 py-3 text-slate-400 font-mono text-xs">
-                      {rec.date} {rec.time || ''}
-                    </td>
-                    <td className="px-6 py-3">
-                      <div className="font-bold text-slate-200">{rec.vehicleNo}</div>
-                      <div className="text-[10px] text-slate-400 font-medium">{rec.unit}</div>
-                    </td>
-                    <td className="px-6 py-3">
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${badgeClass}`}>
-                        {rec.fuelType}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3 font-extrabold text-slate-100 font-mono text-sm">
-                      {(rec.volume ?? 0).toLocaleString(undefined, { minimumFractionDigits: 1 })}
-                    </td>
-                    <td className="px-6 py-3 text-slate-400 font-medium">
-                      {rec.officerName || 'เจ้าหน้าที่'}
-                    </td>
-                  </tr>
-                );
-              })}
-              {records.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="text-center py-10 text-slate-500 italic">
-                    ไม่มีประวัติการจ่ายน้ำมันในระบบ
-                  </td>
-                </tr>
+                    let statusBadge = null;
+                    if (item.type === 'request') {
+                      if (item.status === 'pending') {
+                        statusBadge = (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                            รออนุมัติ
+                          </span>
+                        );
+                      } else if (item.status === 'rejected') {
+                        statusBadge = (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-500/10 text-red-400 border border-red-500/20">
+                            ปฏิเสธ
+                          </span>
+                        );
+                      }
+                    } else {
+                      statusBadge = (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                          จ่ายน้ำมันแล้ว
+                        </span>
+                      );
+                    }
+
+                    return (
+                      <tr key={item.id} className="hover:bg-slate-800/30 transition-colors">
+                        <td className="px-6 py-3 text-slate-400 font-mono text-xs">
+                          <div>{item.date}</div>
+                          <div className="text-[10px] text-slate-500 mt-0.5">{item.time || '--:--'}</div>
+                        </td>
+                        <td className="px-6 py-3">
+                          <div className="font-bold text-slate-200">{item.vehicleNo}</div>
+                          <div className="text-[10px] text-slate-400 font-medium truncate max-w-[200px]" title={item.purpose}>
+                            {item.purpose || 'ไม่ระบุวัตถุประสงค์'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-3">
+                          <div className="mb-1">
+                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${badgeClass}`}>
+                              {item.fuelType}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-500">
+                            เลขไมล์: {item.odometer > 0 ? `${item.odometer.toLocaleString()} กม.` : 'ไม่ได้ระบุ'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-3">
+                          <div className="font-extrabold text-slate-100 font-mono text-sm">
+                            {(item.volume ?? 0).toLocaleString(undefined, { minimumFractionDigits: 1 })}
+                          </div>
+                          <div className="mt-1">{statusBadge}</div>
+                        </td>
+                        <td className="px-6 py-3 text-slate-400 font-medium">
+                          {item.type === 'request' && item.status === 'rejected' ? (
+                            <div>
+                              <div className="text-slate-300">ปฏิเสธโดย: {item.officerOrApprover}</div>
+                              {item.rejectedReason && (
+                                <div className="text-[10px] text-red-400 mt-0.5 max-w-[150px] truncate" title={item.rejectedReason}>
+                                  สาเหตุ: {item.rejectedReason}
+                                </div>
+                              )}
+                            </div>
+                          ) : item.type === 'request' && item.status === 'pending' ? (
+                            <span className="text-slate-500 italic text-[10px]">รอตรวจสอบคิว</span>
+                          ) : (
+                            item.officerOrApprover || 'เจ้าหน้าที่'
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {myRecentTransactions.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="text-center py-10 text-slate-500 italic">
+                        ไม่พบบันทึกการเบิกจ่ายน้ำมันส่วนตัวของท่านในระบบ
+                      </td>
+                    </tr>
+                  )}
+                </>
+              ) : (
+                <>
+                  {records.slice(0, 5).map((rec) => {
+                    const isDiesel = rec.fuelType.includes('ดีเซล');
+                    const badgeClass = isDiesel 
+                      ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
+                      : 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+
+                    return (
+                      <tr key={rec.id} className="hover:bg-slate-800/30 transition-colors">
+                        <td className="px-6 py-3 text-slate-400 font-mono text-xs">
+                          {rec.date} {rec.time || ''}
+                        </td>
+                        <td className="px-6 py-3">
+                          <div className="font-bold text-slate-200">{rec.vehicleNo}</div>
+                          <div className="text-[10px] text-slate-400 font-medium">{rec.unit}</div>
+                        </td>
+                        <td className="px-6 py-3">
+                          <div className="mb-1">
+                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${badgeClass}`}>
+                              {rec.fuelType}
+                            </span>
+                          </div>
+                          {rec.odometer > 0 && (
+                            <div className="text-[10px] text-slate-500">
+                              เลขไมล์: {rec.odometer.toLocaleString()} กม.
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-3 font-extrabold text-slate-100 font-mono text-sm">
+                          {(rec.volume ?? 0).toLocaleString(undefined, { minimumFractionDigits: 1 })}
+                        </td>
+                        <td className="px-6 py-3 text-slate-400 font-medium">
+                          {rec.officerName || 'เจ้าหน้าที่'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {records.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="text-center py-10 text-slate-500 italic">
+                        ไม่มีประวัติการจ่ายน้ำมันในระบบ
+                      </td>
+                    </tr>
+                  )}
+                </>
               )}
             </tbody>
           </table>
