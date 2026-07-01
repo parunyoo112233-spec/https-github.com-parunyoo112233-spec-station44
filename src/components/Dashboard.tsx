@@ -262,7 +262,7 @@ export default function Dashboard({
         </div>
         <div className="my-3">
           <div className="text-3xl sm:text-4xl font-black mb-1 italic text-white font-display">
-            {todayTotalDispensed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
+            {(todayTotalDispensed ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
             <span className="text-sm font-normal text-slate-400 not-italic">ลิตร</span>
           </div>
           <p className="text-slate-400 text-xs italic">ยอดจ่ายรวมประจำวันที่ {formatThaiDate(todayStr)}</p>
@@ -539,7 +539,7 @@ export default function Dashboard({
           {fuelTypePieData.length > 0 && (
             <div className="absolute flex flex-col items-center">
               <span className="text-lg font-black text-white font-display leading-none">
-                {totalDispensed.toLocaleString()}
+                {(totalDispensed ?? 0).toLocaleString()}
               </span>
               <span className="text-[8px] text-slate-400 uppercase tracking-widest mt-1">LITERS TOTAL</span>
             </div>
@@ -599,7 +599,7 @@ export default function Dashboard({
           </div>
           <div className="mt-2">
             <span className="text-[9px] text-slate-400 uppercase tracking-widest block font-bold">บันทึกรวม</span>
-            <span className="text-xl font-black text-white font-mono">{totalTransactions.toLocaleString()}</span>
+            <span className="text-xl font-black text-white font-mono">{(totalTransactions ?? 0).toLocaleString()}</span>
             <span className="text-[9px] text-slate-500 block">ครั้ง</span>
           </div>
         </div>
@@ -611,7 +611,7 @@ export default function Dashboard({
           </div>
           <div className="mt-2">
             <span className="text-[9px] text-slate-400 uppercase tracking-widest block font-bold">เฉลี่ยต่อคัน</span>
-            <span className="text-xl font-black text-white font-mono">{avgDispensed.toLocaleString()}</span>
+            <span className="text-xl font-black text-white font-mono">{(avgDispensed ?? 0).toLocaleString()}</span>
             <span className="text-[9px] text-slate-500 block">ลิตร</span>
           </div>
         </div>
@@ -687,20 +687,23 @@ export default function Dashboard({
       {/* 9. Tank Levels (Narrow) [Grid Span: 3 Cols] */}
       <section id="bento_tanks_sidebar" className="lg:col-span-3 flex flex-col gap-4 shadow-xl">
         {inventory.map((inv, idx) => {
-          const pct = Math.round((inv.currentStock / inv.capacity) * 100);
-          const isDiesel = inv.fuelType.includes('ดีเซล');
+          const currentStock = inv?.currentStock ?? 0;
+          const capacity = inv?.capacity ?? 1;
+          const pct = capacity > 0 ? Math.round((currentStock / capacity) * 100) : 0;
+          const fuelType = inv?.fuelType ?? 'ไม่ระบุชนิด';
+          const isDiesel = fuelType.includes('ดีเซล');
           const isLow = pct < 25;
           const barColor = isLow ? 'bg-red-500' : isDiesel ? 'bg-blue-500' : 'bg-amber-500';
           const labelColor = isLow ? 'text-red-400 font-black animate-pulse' : isDiesel ? 'text-blue-400' : 'text-amber-400';
 
           return (
             <div 
-              key={inv.id || idx} 
+              key={inv?.id || idx} 
               className="bg-slate-850 bg-slate-800/40 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between"
             >
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-                  คงเหลือ: {inv.fuelType} (ถัง {idx + 1})
+                  คงเหลือ: {fuelType} (ถัง {idx + 1})
                 </p>
                 {isLow && (
                   <span className="flex h-2 w-2 relative">
@@ -712,10 +715,10 @@ export default function Dashboard({
               <div className="flex flex-col justify-end gap-2">
                 <div className="flex justify-between items-end text-white">
                   <span className="text-2xl font-black font-display tracking-tight">
-                    {inv.currentStock.toLocaleString()}
+                    {currentStock.toLocaleString()}
                   </span>
                   <span className="text-xs text-slate-400 pb-1 italic font-mono">
-                    / {inv.capacity.toLocaleString()} L
+                    / {capacity.toLocaleString()} L
                   </span>
                 </div>
                 <div className="h-4 bg-slate-900 rounded-full overflow-hidden border border-slate-800 p-0.5">

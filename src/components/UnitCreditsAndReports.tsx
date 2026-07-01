@@ -423,9 +423,11 @@ export default function UnitCreditsAndReports({
               ) : (
                 <div className="space-y-4">
                   {displayedCredits.map((uc) => {
-                    const pct = Math.round((uc.usedCredit / uc.allocatedLimit) * 100) || 0;
-                    const remaining = Math.max(0, uc.allocatedLimit - uc.usedCredit);
-                    const isOver = uc.usedCredit > uc.allocatedLimit;
+                    const allocatedLimit = uc.allocatedLimit ?? 0;
+                    const usedCredit = uc.usedCredit ?? 0;
+                    const pct = allocatedLimit > 0 ? Math.round((usedCredit / allocatedLimit) * 100) : 0;
+                    const remaining = Math.max(0, allocatedLimit - usedCredit);
+                    const isOver = usedCredit > allocatedLimit;
                     const isWarning = pct >= 85 && !isOver;
 
                     return (
@@ -473,7 +475,7 @@ export default function UnitCreditsAndReports({
                           
                           <div className="flex justify-between text-xs font-mono">
                             <span className="text-slate-400">
-                              ใช้สะสม: <strong className="text-white font-bold">{uc.usedCredit.toLocaleString()}</strong> / {uc.allocatedLimit.toLocaleString()} ลิตร ({pct}%)
+                              ใช้สะสม: <strong className="text-white font-bold">{usedCredit.toLocaleString()}</strong> / {allocatedLimit.toLocaleString()} ลิตร ({pct}%)
                             </span>
                             <span className={isOver ? "text-red-400" : isWarning ? "text-amber-400" : "text-emerald-400"}>
                               คงเหลือ: <strong className="font-extrabold">{remaining.toLocaleString()}</strong> ลิตร
@@ -484,30 +486,32 @@ export default function UnitCreditsAndReports({
                         {/* Sub-quotas per fuel type */}
                         <div className="mt-3 pt-3 border-t border-slate-800/40 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px]">
                           {['น้ำมันดีเซล', 'น้ำมันแก๊สโซฮอล์ 95', 'น้ำมันแก๊สโซฮอล์ 91'].map(fuel => {
-                            const quotaInfo = uc.quotas?.[fuel] || (fuel === 'น้ำมันดีเซล' ? { allocatedLimit: uc.allocatedLimit, usedCredit: uc.usedCredit } : { allocatedLimit: 0, usedCredit: 0 });
-                            const fPct = Math.round((quotaInfo.usedCredit / quotaInfo.allocatedLimit) * 100) || 0;
-                            const fRemaining = Math.max(0, quotaInfo.allocatedLimit - quotaInfo.usedCredit);
-                            if (quotaInfo.allocatedLimit === 0) return null;
+                            const quotaInfo = uc.quotas?.[fuel] || (fuel === 'น้ำมันดีเซล' ? { allocatedLimit: allocatedLimit, usedCredit: usedCredit } : { allocatedLimit: 0, usedCredit: 0 });
+                            const qAllocated = quotaInfo.allocatedLimit ?? 0;
+                            const qUsed = quotaInfo.usedCredit ?? 0;
+                            const fPct = qAllocated > 0 ? Math.round((qUsed / qAllocated) * 100) : 0;
+                            const fRemaining = Math.max(0, qAllocated - qUsed);
+                            if (qAllocated === 0) return null;
 
                             return (
                               <div key={fuel} className="bg-slate-900/40 p-2 rounded-xl border border-slate-800/60 flex flex-col justify-between">
                                 <div className="flex justify-between font-bold text-slate-300 mb-1 gap-1">
                                   <span className="truncate" title={fuel}>{fuel}</span>
-                                  <span className={fRemaining < quotaInfo.allocatedLimit * 0.15 ? "text-amber-400" : "text-emerald-400"}>
+                                  <span className={fRemaining < qAllocated * 0.15 ? "text-amber-400" : "text-emerald-400"}>
                                     {fRemaining.toLocaleString()} ล.
                                   </span>
                                 </div>
                                 <div className="w-full bg-slate-800 rounded-full h-1 overflow-hidden mb-1">
                                   <div 
                                     className={`h-full rounded-full ${
-                                      quotaInfo.usedCredit > quotaInfo.allocatedLimit ? 'bg-red-500' : fRemaining < quotaInfo.allocatedLimit * 0.15 ? 'bg-amber-500' : 'bg-emerald-500'
+                                      qUsed > qAllocated ? 'bg-red-500' : fRemaining < qAllocated * 0.15 ? 'bg-amber-500' : 'bg-emerald-500'
                                     }`}
                                     style={{ width: `${Math.min(100, fPct)}%` }}
                                   ></div>
                                 </div>
                                 <div className="text-[9px] text-slate-500 flex justify-between font-mono">
-                                  <span>ใช้: {quotaInfo.usedCredit.toLocaleString()}</span>
-                                  <span>โควตา: {quotaInfo.allocatedLimit.toLocaleString()}</span>
+                                  <span>ใช้: {qUsed.toLocaleString()}</span>
+                                  <span>โควตา: {qAllocated.toLocaleString()}</span>
                                 </div>
                               </div>
                             );
@@ -579,7 +583,7 @@ export default function UnitCreditsAndReports({
                     {displayedCredits.map((uc, idx) => (
                       <div key={uc.id} className="flex items-center gap-1.5 text-[10px] text-slate-300">
                         <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></span>
-                        <span className="truncate">{uc.unit} ({uc.allocatedLimit.toLocaleString()} ลิตร)</span>
+                        <span className="truncate">{uc.unit} ({((uc.allocatedLimit) ?? 0).toLocaleString()} ลิตร)</span>
                       </div>
                     ))}
                   </div>
@@ -707,7 +711,7 @@ export default function UnitCreditsAndReports({
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">รายการที่กรอง</span>
-                <h3 className="text-2xl font-black text-white mt-0.5">{reportCount.toLocaleString()} <span className="text-xs font-normal text-slate-400">ครั้ง</span></h3>
+                <h3 className="text-2xl font-black text-white mt-0.5">{(reportCount ?? 0).toLocaleString()} <span className="text-xs font-normal text-slate-400">ครั้ง</span></h3>
                 <p className="text-[10px] text-slate-400">สอดคล้องตามเกณฑ์เงื่อนไขการค้นหา</p>
               </div>
             </div>
@@ -719,7 +723,7 @@ export default function UnitCreditsAndReports({
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">ปริมาณจ่ายน้ำมันรวม</span>
-                <h3 className="text-2xl font-black text-white mt-0.5">{totalReportDispensed.toLocaleString()} <span className="text-xs font-normal text-slate-400">ลิตร</span></h3>
+                <h3 className="text-2xl font-black text-white mt-0.5">{(totalReportDispensed ?? 0).toLocaleString()} <span className="text-xs font-normal text-slate-400">ลิตร</span></h3>
                 <p className="text-[10px] text-slate-400">ยอดความต้องการใช้น้ำมันในช่วงเวลานี้</p>
               </div>
             </div>
@@ -732,7 +736,7 @@ export default function UnitCreditsAndReports({
               <div>
                 <span className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">วงเงินโควตาจัดสรรรวม</span>
                 <h3 className="text-2xl font-black text-white mt-0.5">
-                  {displayedCredits.reduce((sum, c) => sum + c.allocatedLimit, 0).toLocaleString()} <span className="text-xs font-normal text-slate-400">ลิตร</span>
+                  {displayedCredits.reduce((sum, c) => sum + (c.allocatedLimit ?? 0), 0).toLocaleString()} <span className="text-xs font-normal text-slate-400">ลิตร</span>
                 </h3>
                 <p className="text-[10px] text-slate-400">วงเงินทั้งหมดของกองทัพหน่วยงาน</p>
               </div>
@@ -815,7 +819,7 @@ export default function UnitCreditsAndReports({
                     {fuelTypeBreakdown.map((ft, idx) => (
                       <div key={ft.name} className="flex items-center gap-1.5 text-slate-300">
                         <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></span>
-                        <span className="truncate">{ft.name} ({ft.value.toLocaleString()} ล.)</span>
+                        <span className="truncate">{ft.name} ({(ft.value ?? 0).toLocaleString()} ล.)</span>
                       </div>
                     ))}
                   </div>
@@ -861,7 +865,7 @@ export default function UnitCreditsAndReports({
                             {record.fuelType}
                           </span>
                         </td>
-                        <td className="p-3 text-right font-extrabold text-emerald-400 font-mono">{record.volume.toLocaleString()}</td>
+                        <td className="p-3 text-right font-extrabold text-emerald-400 font-mono">{(record.volume ?? 0).toLocaleString()}</td>
                         <td className="p-3 text-slate-400 font-mono">{record.orderNo}</td>
                       </tr>
                     ))}
@@ -1069,14 +1073,16 @@ export default function UnitCreditsAndReports({
                   </thead>
                   <tbody>
                     {displayedCredits.map((uc, idx) => {
-                      const remaining = Math.max(0, uc.allocatedLimit - uc.usedCredit);
-                      const pct = Math.round((uc.usedCredit / uc.allocatedLimit) * 100) || 0;
+                      const allocatedLimit = uc.allocatedLimit ?? 0;
+                      const usedCredit = uc.usedCredit ?? 0;
+                      const remaining = Math.max(0, allocatedLimit - usedCredit);
+                      const pct = allocatedLimit > 0 ? Math.round((usedCredit / allocatedLimit) * 100) : 0;
                       return (
                         <tr key={uc.id} className="text-slate-800">
                           <td className="border border-slate-300 p-2 text-center">{idx + 1}</td>
                           <td className="border border-slate-300 p-2 font-bold">{uc.unit}</td>
-                          <td className="border border-slate-300 p-2 text-right">{uc.allocatedLimit.toLocaleString()}</td>
-                          <td className="border border-slate-300 p-2 text-right text-emerald-700 font-semibold">{uc.usedCredit.toLocaleString()}</td>
+                          <td className="border border-slate-300 p-2 text-right">{allocatedLimit.toLocaleString()}</td>
+                          <td className="border border-slate-300 p-2 text-right text-emerald-700 font-semibold">{usedCredit.toLocaleString()}</td>
                           <td className="border border-slate-300 p-2 text-right font-bold text-slate-900">{remaining.toLocaleString()}</td>
                           <td className="border border-slate-300 p-2 text-center">{pct}%</td>
                         </tr>
@@ -1085,13 +1091,13 @@ export default function UnitCreditsAndReports({
                     <tr className="bg-slate-50 font-bold text-slate-900">
                       <td colSpan={2} className="border border-slate-300 p-2 text-right">ยอดรวมทั้งหมด</td>
                       <td className="border border-slate-300 p-2 text-right">
-                        {displayedCredits.reduce((sum, c) => sum + c.allocatedLimit, 0).toLocaleString()}
+                        {displayedCredits.reduce((sum, c) => sum + (c.allocatedLimit ?? 0), 0).toLocaleString()}
                       </td>
                       <td className="border border-slate-300 p-2 text-right text-emerald-700">
-                        {displayedCredits.reduce((sum, c) => sum + c.usedCredit, 0).toLocaleString()}
+                        {displayedCredits.reduce((sum, c) => sum + (c.usedCredit ?? 0), 0).toLocaleString()}
                       </td>
                       <td className="border border-slate-300 p-2 text-right">
-                        {displayedCredits.reduce((sum, c) => sum + Math.max(0, c.allocatedLimit - c.usedCredit), 0).toLocaleString()}
+                        {displayedCredits.reduce((sum, c) => sum + Math.max(0, (c.allocatedLimit ?? 0) - (c.usedCredit ?? 0)), 0).toLocaleString()}
                       </td>
                       <td className="border border-slate-300 p-2 text-center">-</td>
                     </tr>
@@ -1121,7 +1127,7 @@ export default function UnitCreditsAndReports({
                         <td className="border border-slate-300 p-1.5 font-mono">{r.orderNo}</td>
                         <td className="border border-slate-300 p-1.5">{r.unit}</td>
                         <td className="border border-slate-300 p-1.5">{r.fuelType}</td>
-                        <td className="border border-slate-300 p-1.5 text-right font-bold">{r.volume.toLocaleString()}</td>
+                        <td className="border border-slate-300 p-1.5 text-right font-bold">{(r.volume ?? 0).toLocaleString()}</td>
                         <td className="border border-slate-300 p-1.5">{r.driverName}</td>
                       </tr>
                     ))}

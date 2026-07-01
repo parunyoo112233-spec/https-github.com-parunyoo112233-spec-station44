@@ -101,7 +101,7 @@ export default function RecordForm({ currentUser, inventory, onRecordAdded }: Re
 
     // Stock Validation
     if (selectedFuelStock && Number(volume) > selectedFuelStock.currentStock) {
-      setError(`ไม่สามารถจ่ายน้ำมันได้เนื่องจากยอดจ่ายสูงกว่าปริมาณคงเหลือในคลัง (${selectedFuelStock.currentStock.toLocaleString()} ลิตร)`);
+      setError(`ไม่สามารถจ่ายน้ำมันได้เนื่องจากยอดจ่ายสูงกว่าปริมาณคงเหลือในคลัง (${(selectedFuelStock.currentStock ?? 0).toLocaleString()} ลิตร)`);
       return;
     }
 
@@ -109,7 +109,7 @@ export default function RecordForm({ currentUser, inventory, onRecordAdded }: Re
     if (matchedUnitCredit) {
       if (specificQuota) {
         if (Number(volume) > remainingQuota) {
-          setError(`ยอดเบิก (${volume} ลิตร) เกินกว่าโควตาคงเหลือของหน่วยงานสำหรับ ${fuelType} (คงเหลือ ${remainingQuota.toLocaleString()} ลิตร)`);
+          setError(`ยอดเบิก (${volume} ลิตร) เกินกว่าโควตาคงเหลือของหน่วยงานสำหรับ ${fuelType} (คงเหลือ ${(remainingQuota ?? 0).toLocaleString()} ลิตร)`);
           return;
         }
       } else {
@@ -314,10 +314,10 @@ export default function RecordForm({ currentUser, inventory, onRecordAdded }: Re
                 {matchedUnitCredit ? (
                   <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/60 flex items-center justify-between text-[11px]">
                     <span className="text-slate-400">
-                      เครดิตใช้สะสม: <strong className="text-white">{matchedUnitCredit.usedCredit.toLocaleString()}</strong> / {matchedUnitCredit.allocatedLimit.toLocaleString()} L
+                      เครดิตใช้สะสม: <strong className="text-white">{(matchedUnitCredit.usedCredit ?? 0).toLocaleString()}</strong> / {(matchedUnitCredit.allocatedLimit ?? 0).toLocaleString()} L
                     </span>
-                    <span className={matchedUnitCredit.usedCredit >= matchedUnitCredit.allocatedLimit ? "text-red-400 font-bold" : "text-emerald-400 font-bold"}>
-                      คงเหลือ: {(matchedUnitCredit.allocatedLimit - matchedUnitCredit.usedCredit).toLocaleString()} L
+                    <span className={(matchedUnitCredit.usedCredit ?? 0) >= (matchedUnitCredit.allocatedLimit ?? 0) ? "text-red-400 font-bold" : "text-emerald-400 font-bold"}>
+                      คงเหลือ: {((matchedUnitCredit.allocatedLimit ?? 0) - (matchedUnitCredit.usedCredit ?? 0)).toLocaleString()} L
                     </span>
                   </div>
                 ) : (
@@ -362,7 +362,7 @@ export default function RecordForm({ currentUser, inventory, onRecordAdded }: Re
             >
               {inventory.map(inv => (
                 <option key={inv.fuelType} value={inv.fuelType}>
-                  {inv.fuelType} (คงเหลือ {inv.currentStock.toLocaleString()} L)
+                  {inv.fuelType} (คงเหลือ {(inv.currentStock ?? 0).toLocaleString()} L)
                 </option>
               ))}
             </select>

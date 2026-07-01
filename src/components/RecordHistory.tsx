@@ -225,12 +225,12 @@ export default function RecordHistory({ records, inventory }: RecordHistoryProps
               {Object.entries(summaryStats.fuelBreakdown).map(([fuel, vol]) => (
                 <tr key={fuel} className="border-b border-black">
                   <td className="p-2 border-r border-black">{fuel}</td>
-                  <td className="p-2 text-right font-mono">{vol.toLocaleString()} ลิตร</td>
+                  <td className="p-2 text-right font-mono">{(vol ?? 0).toLocaleString()} ลิตร</td>
                 </tr>
               ))}
               <tr className="bg-slate-100 font-bold border-t border-black">
                 <td className="p-2 border-r border-black text-right">ยอดรวมน้ำมันเชื้อเพลิงทั้งสิ้น</td>
-                <td className="p-2 text-right font-mono">{summaryStats.totalLiters.toLocaleString()} ลิตร</td>
+                <td className="p-2 text-right font-mono">{(summaryStats.totalLiters ?? 0).toLocaleString()} ลิตร</td>
               </tr>
             </tbody>
           </table>
@@ -461,7 +461,7 @@ export default function RecordHistory({ records, inventory }: RecordHistoryProps
         <div className="bg-slate-800 p-4 rounded-xl border border-slate-700/50">
           <p className="text-[10px] text-slate-400 uppercase font-semibold">ปริมาณจ่ายรวมช่วงเวลา</p>
           <p className="text-xl sm:text-2xl font-extrabold text-white mt-1">
-            {summaryStats.totalLiters.toLocaleString()} <span className="text-xs text-slate-400 font-normal">ลิตร</span>
+            {(summaryStats.totalLiters ?? 0).toLocaleString()} <span className="text-xs text-slate-400 font-normal">ลิตร</span>
           </p>
         </div>
 

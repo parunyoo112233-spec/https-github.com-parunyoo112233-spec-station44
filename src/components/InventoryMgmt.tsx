@@ -34,7 +34,7 @@ export default function InventoryMgmt({ currentUser, inventory, onReplenished }:
     const selectedInv = inventory.find(inv => inv.fuelType === selectedFuel);
     if (selectedInv) {
       if (selectedInv.currentStock + Number(amount) > selectedInv.capacity) {
-        setError(`ไม่สามารถเติมน้ำมันได้เกินความจุของถังเก็บ (${selectedInv.capacity.toLocaleString()} ลิตร) ยอดที่จะเติมรวมกันจะกลายเป็น ${(selectedInv.currentStock + Number(amount)).toLocaleString()} ลิตร`);
+        setError(`ไม่สามารถเติมน้ำมันได้เกินความจุของถังเก็บ (${(selectedInv.capacity ?? 0).toLocaleString()} ลิตร) ยอดที่จะเติมรวมกันจะกลายเป็น ${((selectedInv.currentStock ?? 0) + Number(amount)).toLocaleString()} ลิตร`);
         return;
       }
     }
@@ -105,7 +105,7 @@ export default function InventoryMgmt({ currentUser, inventory, onReplenished }:
                     <span className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></span>
                     {inv.fuelType}
                   </h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5 font-mono">CAPACITY: {inv.capacity.toLocaleString()} L</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5 font-mono">CAPACITY: {(inv.capacity ?? 0).toLocaleString()} L</p>
                 </div>
                 {isLow ? (
                   <span className="bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1">
@@ -121,7 +121,7 @@ export default function InventoryMgmt({ currentUser, inventory, onReplenished }:
               {/* Progress and Visual Tank level */}
               <div className="mt-5 space-y-2">
                 <div className="flex justify-between items-baseline">
-                  <span className="text-2xl font-black text-white font-display">{inv.currentStock.toLocaleString()} ลิตร</span>
+                  <span className="text-2xl font-black text-white font-display">{(inv.currentStock ?? 0).toLocaleString()} ลิตร</span>
                   <span className="text-sm font-bold text-slate-400 font-mono">{pct}%</span>
                 </div>
                 
@@ -140,7 +140,7 @@ export default function InventoryMgmt({ currentUser, inventory, onReplenished }:
                     
                     {/* Readout label centered inside tank */}
                     <span className="relative text-[11px] font-mono text-slate-300 font-bold z-10">
-                      คงเหลือ {inv.currentStock.toLocaleString()} ลิตร
+                      คงเหลือ {(inv.currentStock ?? 0).toLocaleString()} ลิตร
                     </span>
                   </div>
                 </div>
@@ -190,7 +190,7 @@ export default function InventoryMgmt({ currentUser, inventory, onReplenished }:
                 >
                   {inventory.map(inv => (
                     <option key={inv.fuelType} value={inv.fuelType}>
-                      {inv.fuelType} (จุถังได้อีก {(inv.capacity - inv.currentStock).toLocaleString()} ลิตร)
+                      {inv.fuelType} (จุถังได้อีก {((inv.capacity ?? 0) - (inv.currentStock ?? 0)).toLocaleString()} ลิตร)
                     </option>
                   ))}
                 </select>

@@ -73,7 +73,7 @@ export default function RequestQueue({
     // Stock level pre-check
     const fuelStock = inventory.find(inv => inv.fuelType === request.fuelType);
     if (fuelStock && request.volume > fuelStock.currentStock) {
-      setError(`ไม่สามารถอนุมัติได้: ยอดขอเบิก (${request.volume} ลิตร) สูงกว่าระดับคงเหลือในคลัง (${fuelStock.currentStock.toLocaleString()} ลิตร)`);
+      setError(`ไม่สามารถอนุมัติได้: ยอดขอเบิก (${request.volume} ลิตร) สูงกว่าระดับคงเหลือในคลัง (${(fuelStock.currentStock ?? 0).toLocaleString()} ลิตร)`);
       setActionLoading(null);
       return;
     }
@@ -287,7 +287,7 @@ export default function RequestQueue({
                 <>
                   <div>
                     <p className="text-slate-400 font-medium">เลขไมล์รถล่าสุด</p>
-                    <p className="text-sm font-mono font-bold text-white mt-1">{req.odometer.toLocaleString()} กม.</p>
+                    <p className="text-sm font-mono font-bold text-white mt-1">{(req.odometer ?? 0).toLocaleString()} กม.</p>
                   </div>
 
                   <div>
