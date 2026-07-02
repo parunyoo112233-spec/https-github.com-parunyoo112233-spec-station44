@@ -4,15 +4,16 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { FuelRecord, FuelInventory } from '../types';
+import { FuelRecord, FuelInventory, UserProfile } from '../types';
 import { Calendar, Search, Filter, Printer, Download, FileText, ChevronDown, CheckCircle } from 'lucide-react';
 
 interface RecordHistoryProps {
   records: FuelRecord[];
   inventory: FuelInventory[];
+  currentUser?: UserProfile | null;
 }
 
-export default function RecordHistory({ records, inventory }: RecordHistoryProps) {
+export default function RecordHistory({ records, inventory, currentUser }: RecordHistoryProps) {
   // Filters state
   const [filterType, setFilterType] = useState<'all' | 'daily' | 'monthly'>('all');
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -24,11 +25,19 @@ export default function RecordHistory({ records, inventory }: RecordHistoryProps
   // View mode
   const [isPrintMode, setIsPrintMode] = useState(false);
 
+  // Filter records by department if user is regular user
+  const visibleRecords = useMemo(() => {
+    if (currentUser && currentUser.role === 'user') {
+      return records.filter(r => r.unit === currentUser.department);
+    }
+    return records;
+  }, [records, currentUser]);
+
   // Extract unique Units/Departments from records for filters
   const uniqueUnits = useMemo(() => {
-    const units = records.map(r => r.unit);
+    const units = visibleRecords.map(r => r.unit);
     return ['all', ...Array.from(new Set(units))];
-  }, [records]);
+  }, [visibleRecords]);
 
   // Thai months for dropdown/labels
   const thaiMonths = [
@@ -55,7 +64,7 @@ export default function RecordHistory({ records, inventory }: RecordHistoryProps
 
   // Filtered records
   const filteredRecords = useMemo(() => {
-    return records.filter(rec => {
+    return visibleRecords.filter(rec => {
       // 1. Time Filter
       if (filterType === 'daily') {
         if (rec.date !== selectedDate) return false;
@@ -83,7 +92,7 @@ export default function RecordHistory({ records, inventory }: RecordHistoryProps
 
       return true;
     });
-  }, [records, filterType, selectedDate, selectedMonth, selectedFuel, selectedUnit, searchQuery]);
+  }, [visibleRecords, filterType, selectedDate, selectedMonth, selectedFuel, selectedUnit, searchQuery]);
 
   // Calculations for filtered data
   const summaryStats = useMemo(() => {
