@@ -57,7 +57,7 @@ export default function RecordForm({ currentUser, inventory, onRecordAdded }: Re
     usedCredit: fuelType === 'น้ำมันดีเซล' ? matchedUnitCredit.usedCredit : 0
   } : null);
 
-  const remainingQuota = specificQuota ? Math.max(0, specificQuota.allocatedLimit - specificQuota.usedCredit) : 0;
+  const remainingQuota = specificQuota ? specificQuota.allocatedLimit - specificQuota.usedCredit : 0;
 
   // Set default current date and time
   useEffect(() => {

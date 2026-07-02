@@ -71,7 +71,7 @@ export default function UnitCreditsAndReports({
   const [editingCredit, setEditingCredit] = useState<UnitCredit | null>(null);
   const [formUnitName, setFormUnitName] = useState('');
   const [formLimit, setFormLimit] = useState<number>(5000);
-  const [formQuotas, setFormQuotas] = useState<Record<string, number>>({
+  const [formQuotas, setFormQuotas] = useState<Record<string, string | number>>({
     'น้ำมันดีเซล': 0,
     'น้ำมันแก๊สโซฮอล์ 95': 0,
     'น้ำมันแก๊สโซฮอล์ 91': 0
@@ -147,15 +147,14 @@ export default function UnitCreditsAndReports({
       return;
     }
 
-    const totalAllocated = (Object.values(formQuotas) as number[]).reduce((sum, val) => sum + val, 0);
-    if (totalAllocated <= 0) {
-      setFormError('ยอดวงเงินโควตารวมต้องมากกว่า 0 ลิตร');
-      return;
-    }
+    const parsedQuotas: Record<string, number> = {};
+    Object.entries(formQuotas).forEach(([fuel, val]) => {
+      parsedQuotas[fuel] = parseInt(String(val), 10) || 0;
+    });
 
     try {
       const targetId = editingCredit ? editingCredit.id : formUnitName.trim();
-      await updateUnitCreditLimit(targetId, formQuotas);
+      await updateUnitCreditLimit(targetId, parsedQuotas);
       setFormSuccess('บันทึกข้อมูลวงเงินโควตาสำเร็จ!');
       
       setTimeout(() => {
@@ -426,8 +425,8 @@ export default function UnitCreditsAndReports({
                     const allocatedLimit = uc.allocatedLimit ?? 0;
                     const usedCredit = uc.usedCredit ?? 0;
                     const pct = allocatedLimit > 0 ? Math.round((usedCredit / allocatedLimit) * 100) : 0;
-                    const remaining = Math.max(0, allocatedLimit - usedCredit);
-                    const isOver = usedCredit > allocatedLimit;
+                    const remaining = allocatedLimit - usedCredit;
+                    const isOver = usedCredit > allocatedLimit || allocatedLimit < 0;
                     const isWarning = pct >= 85 && !isOver;
 
                     return (
@@ -490,7 +489,7 @@ export default function UnitCreditsAndReports({
                             const qAllocated = quotaInfo.allocatedLimit ?? 0;
                             const qUsed = quotaInfo.usedCredit ?? 0;
                             const fPct = qAllocated > 0 ? Math.round((qUsed / qAllocated) * 100) : 0;
-                            const fRemaining = Math.max(0, qAllocated - qUsed);
+                            const fRemaining = qAllocated - qUsed;
                             if (qAllocated === 0) return null;
 
                             return (
@@ -915,11 +914,10 @@ export default function UnitCreditsAndReports({
                     <label className="text-[10px] text-slate-500 font-bold block mb-1">น้ำมันดีเซล</label>
                     <input
                       type="number"
-                      min="0"
                       placeholder="เช่น 5000"
-                      value={formQuotas['น้ำมันดีเซล'] || ''}
+                      value={formQuotas['น้ำมันดีเซล'] ?? ''}
                       onChange={(e) => {
-                        const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                        const val = e.target.value;
                         setFormQuotas(prev => ({ ...prev, 'น้ำมันดีเซล': val }));
                       }}
                       className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono"
@@ -929,11 +927,10 @@ export default function UnitCreditsAndReports({
                     <label className="text-[10px] text-slate-500 font-bold block mb-1">น้ำมันแก๊สโซฮอล์ 95</label>
                     <input
                       type="number"
-                      min="0"
                       placeholder="เช่น 1000"
-                      value={formQuotas['น้ำมันแก๊สโซฮอล์ 95'] || ''}
+                      value={formQuotas['น้ำมันแก๊สโซฮอล์ 95'] ?? ''}
                       onChange={(e) => {
-                        const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                        const val = e.target.value;
                         setFormQuotas(prev => ({ ...prev, 'น้ำมันแก๊สโซฮอล์ 95': val }));
                       }}
                       className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono"
@@ -943,11 +940,10 @@ export default function UnitCreditsAndReports({
                     <label className="text-[10px] text-slate-500 font-bold block mb-1">น้ำมันแก๊สโซฮอล์ 91</label>
                     <input
                       type="number"
-                      min="0"
                       placeholder="เช่น 1000"
-                      value={formQuotas['น้ำมันแก๊สโซฮอล์ 91'] || ''}
+                      value={formQuotas['น้ำมันแก๊สโซฮอล์ 91'] ?? ''}
                       onChange={(e) => {
-                        const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                        const val = e.target.value;
                         setFormQuotas(prev => ({ ...prev, 'น้ำมันแก๊สโซฮอล์ 91': val }));
                       }}
                       className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono"
@@ -958,7 +954,7 @@ export default function UnitCreditsAndReports({
                 <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-xs font-mono text-slate-400">
                   <span>ยอดโควตารวมทั้งสิ้น:</span>
                   <span className="font-extrabold text-white text-sm">
-                    {((Object.values(formQuotas) as number[]).reduce((sum, v) => sum + v, 0)).toLocaleString()} ลิตร
+                    {((Object.values(formQuotas) as (string | number)[]).reduce<number>((sum, v) => sum + (parseInt(String(v), 10) || 0), 0)).toLocaleString()} ลิตร
                   </span>
                 </div>
               </div>

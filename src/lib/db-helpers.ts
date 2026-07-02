@@ -454,7 +454,7 @@ export async function approveFuelRequest(
       'น้ำมันแก๊สโซฮอล์ 91': { allocatedLimit: 0, usedCredit: 0 }
     };
     const specificQuota = quotas[requestData.fuelType] || { allocatedLimit: 0, usedCredit: 0 };
-    const remainingQuota = Math.max(0, specificQuota.allocatedLimit - specificQuota.usedCredit);
+    const remainingQuota = specificQuota.allocatedLimit - specificQuota.usedCredit;
     if (requestData.volume > remainingQuota) {
       throw new Error(`ยอดเบิก (${requestData.volume} ลิตร) เกินกว่าโควตาคงเหลือของหน่วยงานสำหรับ ${requestData.fuelType} (คงเหลือ ${remainingQuota.toLocaleString()} ลิตร)`);
     }
