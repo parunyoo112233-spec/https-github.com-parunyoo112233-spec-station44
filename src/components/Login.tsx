@@ -9,7 +9,7 @@ import {
   createUserWithEmailAndPassword 
 } from 'firebase/auth';
 import { auth } from '../firebase';
-import { saveUserProfile, getUserProfile } from '../lib/db-helpers';
+import { saveUserProfile, getUserProfile, getUnitCredits } from '../lib/db-helpers';
 import { UserProfile, UserRole } from '../types';
 import { Fuel, Lock, Mail, User, Shield, Compass, Truck, Loader2, Briefcase } from 'lucide-react';
 
@@ -30,6 +30,29 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
+  const [availableUnits, setAvailableUnits] = useState<string[]>([]);
+
+  // Load available quota-allocated units on signup toggle or mount
+  React.useEffect(() => {
+    const fetchUnits = async () => {
+      try {
+        const units = await getUnitCredits();
+        const names = units
+          .filter((u) => u.allocatedLimit > 0)
+          .map((u) => u.unit || u.id)
+          .filter(Boolean) as string[];
+        const uniqueNames = Array.from(new Set(names));
+        setAvailableUnits(uniqueNames);
+        // Automatically default the selected department if it is not set or not in the available units
+        if (uniqueNames.length > 0 && (!department || !uniqueNames.includes(department))) {
+          setDepartment(uniqueNames[0]);
+        }
+      } catch (err) {
+        console.error('Error fetching units:', err);
+      }
+    };
+    fetchUnits();
+  }, [isSignUp]);
 
   // Helper to persist user session based on Remember Me checkbox
   const saveSession = (profile: UserProfile) => {
@@ -483,21 +506,41 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               {/* Department */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-slate-400 uppercase tracking-wider block">
-                  หน่วยงาน/สังกัด (e.g. ร.25 พัน.1)
+                  หน่วยงาน/สังกัดที่มีโควตาในระบบ *
                 </label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 z-10">
                     <Compass className="h-4 w-4" />
                   </span>
-                  <input
-                    type="text"
+                  <select
                     required
-                    placeholder="ร.25 พัน.1 หรือ มทบ.44"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:border-emerald-500 outline-none text-white text-sm transition"
-                  />
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-white text-sm transition appearance-none cursor-pointer"
+                  >
+                    {availableUnits.length === 0 ? (
+                      <option value="" disabled>กำลังโหลดข้อมูลหน่วยงาน...</option>
+                    ) : (
+                      <>
+                        <option value="" disabled>-- เลือกหน่วยงาน/สังกัด --</option>
+                        {availableUnits.map((u) => (
+                          <option key={u} value={u} className="bg-slate-900">
+                            {u}
+                          </option>
+                        ))}
+                      </>
+                    )}
+                  </select>
+                  {/* Custom arrow for select drop */}
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                    </svg>
+                  </div>
                 </div>
+                <p className="text-[10px] text-slate-400">
+                  * กำลังพลสมัครใหม่จะสามารถเลือกเฉพาะสังกัดที่มีการตั้งโควตาน้ำมันแล้วในระบบเท่านั้น
+                </p>
               </div>
 
               {/* Position */}
