@@ -703,17 +703,19 @@ export default function App() {
           </button>
 
           {/* 5. Inventory Stock Tab */}
-          <button
-            onClick={() => setActiveTab('inventory')}
-            className={`flex flex-col items-center justify-center w-14 py-1 rounded-xl transition cursor-pointer ${
-              activeTab === 'inventory'
-                ? 'text-emerald-400 font-bold bg-slate-800/60'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Warehouse className="h-5 w-5" />
-            <span className="text-[10px] mt-1 font-medium">คลังน้ำมัน</span>
-          </button>
+          {(currentUser.role === 'admin' || currentUser.role === 'officer') && (
+            <button
+              onClick={() => setActiveTab('inventory')}
+              className={`flex flex-col items-center justify-center w-14 py-1 rounded-xl transition cursor-pointer ${
+                activeTab === 'inventory'
+                  ? 'text-emerald-400 font-bold bg-slate-800/60'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Warehouse className="h-5 w-5" />
+              <span className="text-[10px] mt-1 font-medium">คลังน้ำมัน</span>
+            </button>
+          )}
 
           {/* 6. Credits & Reports Tab */}
           <button

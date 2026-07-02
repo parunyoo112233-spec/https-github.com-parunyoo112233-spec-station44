@@ -346,83 +346,92 @@ export default function Dashboard({
     <div id="dashboard_view" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4">
       
       {/* 1. Daily Summary Card (Primary) [Grid Span: 4 Cols] */}
-      <section id="bento_daily_summary" className="lg:col-span-4 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border border-slate-700/80 p-6 flex flex-col justify-between min-h-[220px] shadow-lg">
-        <div className="flex justify-between items-start">
-          <span className="px-2 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded border border-emerald-500/20 uppercase tracking-wider">
-            สรุปยอดวันนี้
-          </span>
-          <TrendingUp className="w-5 h-5 text-emerald-400" />
-        </div>
-        <div className="my-3">
-          <div className="text-3xl sm:text-4xl font-black mb-1 italic text-white font-display">
-            {(todayTotalDispensed ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
-            <span className="text-sm font-normal text-slate-400 not-italic">ลิตร</span>
+      {userRole !== 'user' && (
+        <section id="bento_daily_summary" className="lg:col-span-4 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border border-slate-700/80 p-6 flex flex-col justify-between min-h-[220px] shadow-lg">
+          <div className="flex justify-between items-start">
+            <span className="px-2 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded border border-emerald-500/20 uppercase tracking-wider">
+              สรุปยอดวันนี้
+            </span>
+            <TrendingUp className="w-5 h-5 text-emerald-400" />
           </div>
-          <p className="text-slate-400 text-xs italic">ยอดจ่ายรวมประจำวันที่ {formatThaiDate(todayStr)}</p>
-        </div>
-        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700/50">
-          <div>
-            <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">ดีเซล</p>
-            <p className="font-bold text-base text-slate-200">
-              {((todayBreakdown['น้ำมันดีเซล'] || 0) + (todayBreakdown['ดีเซล B7'] || 0) + (todayBreakdown['ดีเซล'] || 0)).toLocaleString()}{' '}
-              <span className="text-[10px] font-normal text-slate-400">L</span>
-            </p>
+          <div className="my-3">
+            <div className="text-3xl sm:text-4xl font-black mb-1 italic text-white font-display">
+              {(todayTotalDispensed ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
+              <span className="text-sm font-normal text-slate-400 not-italic">ลิตร</span>
+            </div>
+            <p className="text-slate-400 text-xs italic">ยอดจ่ายรวมประจำวันที่ {formatThaiDate(todayStr)}</p>
           </div>
-          <div>
-            <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">เบนซิน/แก๊สโซฮอล์</p>
-            <p className="font-bold text-base text-amber-500">
-              {((todayBreakdown['น้ำมันแก๊สโซฮอล์ 95'] || 0) + (todayBreakdown['แก๊สโซฮอล์ 95'] || 0) + (todayBreakdown['น้ำมันแก๊สโซฮอล์ 91'] || 0) + (todayBreakdown['แก๊สโซฮอล์ 91'] || 0)).toLocaleString()}{' '}
-              <span className="text-[10px] font-normal text-slate-400">L</span>
-            </p>
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-700/50">
+            <div>
+              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">ดีเซล</p>
+              <p className="font-bold text-base text-slate-200">
+                {((todayBreakdown['น้ำมันดีเซล'] || 0) + (todayBreakdown['ดีเซล B7'] || 0) + (todayBreakdown['ดีเซล'] || 0)).toLocaleString()}{' '}
+                <span className="text-[10px] font-normal text-slate-400">L</span>
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">เบนซิน/แก๊สโซฮอล์</p>
+              <p className="font-bold text-base text-amber-500">
+                {((todayBreakdown['น้ำมันแก๊สโซฮอล์ 95'] || 0) + (todayBreakdown['แก๊สโซฮอล์ 95'] || 0) + (todayBreakdown['น้ำมันแก๊สโซฮอล์ 91'] || 0) + (todayBreakdown['แก๊สโซฮอล์ 91'] || 0)).toLocaleString()}{' '}
+                <span className="text-[10px] font-normal text-slate-400">L</span>
+              </p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 2. Monthly Target Chart / 7-Day Trend [Grid Span: 5 Cols] */}
-      <section id="bento_weekly_trend" className="lg:col-span-5 bg-slate-800/40 rounded-2xl border border-slate-700/80 p-6 flex flex-col justify-between shadow-lg">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-            <LineChart className="h-4 w-4 text-emerald-400" />
-            สถิติการจ่ายรายวัน (7 วันล่าสุด)
-          </h3>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-            <span className="text-[10px] text-slate-400 uppercase tracking-wider">จ่ายจริง</span>
-          </div>
-        </div>
-        <div className="w-full h-32">
-          {records.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-slate-500 text-xs italic">
-              ไม่มีข้อมูลการจ่ายน้ำมันในระบบ
+      {userRole !== 'user' && (
+        <section id="bento_weekly_trend" className="lg:col-span-5 bg-slate-800/40 rounded-2xl border border-slate-700/80 p-6 flex flex-col justify-between shadow-lg">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+              <LineChart className="h-4 w-4 text-emerald-400" />
+              สถิติการจ่ายรายวัน (7 วันล่าสุด)
+            </h3>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <span className="text-[10px] text-slate-400 uppercase tracking-wider">จ่ายจริง</span>
             </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dailyTrendData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                <XAxis dataKey="dateLabel" tick={{ fill: '#94a3b8', fontSize: 9 }} />
-                <YAxis tick={{ fill: '#94a3b8', fontSize: 9 }} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px', fontSize: '11px', color: '#fff' }}
-                />
-                {inventory.map((inv) => (
-                  <Bar 
-                    key={inv.fuelType} 
-                    dataKey={inv.fuelType} 
-                    stackId="a" 
-                    fill={FUEL_COLORS[inv.fuelType] || '#10B981'} 
-                    radius={[2, 2, 0, 0]}
+          </div>
+          <div className="w-full h-32">
+            {records.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-slate-500 text-xs italic">
+                ไม่มีข้อมูลการจ่ายน้ำมันในระบบ
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dailyTrendData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                  <XAxis dataKey="dateLabel" tick={{ fill: '#94a3b8', fontSize: 9 }} />
+                  <YAxis tick={{ fill: '#94a3b8', fontSize: 9 }} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px', fontSize: '11px', color: '#fff' }}
                   />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-        <div className="flex justify-between mt-2 pt-2 border-t border-slate-800 text-[10px] text-slate-400 font-mono">
-          <span>แนวโน้มยอดการเบิกจ่ายสอดคล้องกับแผนที่กำหนดไว้</span>
-        </div>
-      </section>
+                  {inventory.map((inv) => (
+                    <Bar 
+                      key={inv.fuelType} 
+                      dataKey={inv.fuelType} 
+                      stackId="a" 
+                      fill={FUEL_COLORS[inv.fuelType] || '#10B981'} 
+                      radius={[2, 2, 0, 0]}
+                    />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+          <div className="flex justify-between mt-2 pt-2 border-t border-slate-800 text-[10px] text-slate-400 font-mono">
+            <span>แนวโน้มยอดการเบิกจ่ายสอดคล้องกับแผนที่กำหนดไว้</span>
+          </div>
+        </section>
+      )}
 
       {/* 3. Unit Fuel Quotas / Received-Disbursed Summary [Grid Span: 3 Cols] */}
-      <section id="bento_unit_quota_summary" className="lg:col-span-3 bg-slate-800/40 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between shadow-lg">
+      <section 
+        id="bento_unit_quota_summary" 
+        className={`${
+          userRole === 'user' ? 'lg:col-span-8' : 'lg:col-span-3'
+        } bg-slate-800/40 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between shadow-lg`}
+      >
         <div className="space-y-3 w-full">
           <div className="flex items-center justify-between border-b border-slate-800/60 pb-2">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
@@ -550,10 +559,12 @@ export default function Dashboard({
         </div>
       </section>
 
-      {/* 4. Quick Actions Widget (Enhanced) [Grid Span: 3 Cols] */}
+      {/* 4. Quick Actions Widget (Enhanced) [Grid Span: 3 or 4 Cols] */}
       <section 
         id="bento_quick_actions"
-        className="lg:col-span-3 bg-slate-800/40 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between shadow-lg"
+        className={`${
+          userRole === 'user' ? 'lg:col-span-4' : 'lg:col-span-3'
+        } bg-slate-800/40 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between shadow-lg`}
       >
         <div className="space-y-3.5 w-full">
           {/* Section Header */}
@@ -709,126 +720,137 @@ export default function Dashboard({
       </section>
 
       {/* 5. Accumulative Fuel Proportion Chart (Pie Chart) [Grid Span: 4 Cols] */}
-      <section id="bento_fuel_pie" className="lg:col-span-4 bg-slate-800/30 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between shadow-lg">
-        <div className="flex items-center gap-2 mb-2">
-          <Flame className="h-4 w-4 text-emerald-400" />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-            สัดส่วนปริมาณการจ่ายน้ำมันสะสม
-          </h3>
-        </div>
-        
-        <div className="w-full h-36 flex items-center justify-center relative">
-          {fuelTypePieData.length === 0 ? (
-            <div className="text-slate-500 text-xs italic">ไม่มีข้อมูลสะสม</div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={fuelTypePieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={38}
-                  outerRadius={54}
-                  paddingAngle={3}
-                  dataKey="value"
-                >
-                  {fuelTypePieData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={FUEL_COLORS[entry.name] || PIE_COLORS[index % PIE_COLORS.length]} 
-                    />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  formatter={(value) => [`${value} ลิตร`, 'ยอดเติมสะสม']}
-                  contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px', fontSize: '11px', color: '#fff' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-          {fuelTypePieData.length > 0 && (
-            <div className="absolute flex flex-col items-center">
-              <span className="text-lg font-black text-white font-display leading-none">
-                {(totalDispensed ?? 0).toLocaleString()}
-              </span>
-              <span className="text-[8px] text-slate-400 uppercase tracking-widest mt-1">LITERS TOTAL</span>
-            </div>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-1.5 mt-2 text-[10px] border-t border-slate-800/50 pt-2">
-          {fuelTypePieData.map((entry, idx) => {
-            const color = FUEL_COLORS[entry.name] || PIE_COLORS[idx % PIE_COLORS.length];
-            const pct = totalDispensed > 0 ? Math.round((entry.value / totalDispensed) * 100) : 0;
-            return (
-              <div key={entry.name} className="flex items-center gap-1.5 text-slate-300">
-                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }}></span>
-                <span className="truncate">{entry.name}: <span className="font-bold text-white font-mono">{pct}%</span></span>
+      {userRole !== 'user' && (
+        <section id="bento_fuel_pie" className="lg:col-span-4 bg-slate-800/30 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between shadow-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <Flame className="h-4 w-4 text-emerald-400" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+              สัดส่วนปริมาณการจ่ายน้ำมันสะสม
+            </h3>
+          </div>
+          
+          <div className="w-full h-36 flex items-center justify-center relative">
+            {fuelTypePieData.length === 0 ? (
+              <div className="text-slate-500 text-xs italic">ไม่มีข้อมูลสะสม</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={fuelTypePieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={38}
+                    outerRadius={54}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {fuelTypePieData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={FUEL_COLORS[entry.name] || PIE_COLORS[index % PIE_COLORS.length]} 
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value) => [`${value} ลิตร`, 'ยอดเติมสะสม']}
+                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px', fontSize: '11px', color: '#fff' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+            {fuelTypePieData.length > 0 && (
+              <div className="absolute flex flex-col items-center">
+                <span className="text-lg font-black text-white font-display leading-none">
+                  {(totalDispensed ?? 0).toLocaleString()}
+                </span>
+                <span className="text-[8px] text-slate-400 uppercase tracking-widest mt-1">LITERS TOTAL</span>
               </div>
-            );
-          })}
-        </div>
-      </section>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-1.5 mt-2 text-[10px] border-t border-slate-800/50 pt-2">
+            {fuelTypePieData.map((entry, idx) => {
+              const color = FUEL_COLORS[entry.name] || PIE_COLORS[idx % PIE_COLORS.length];
+              const pct = totalDispensed > 0 ? Math.round((entry.value / totalDispensed) * 100) : 0;
+              return (
+                <div key={entry.name} className="flex items-center gap-1.5 text-slate-300">
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }}></span>
+                  <span className="truncate">{entry.name}: <span className="font-bold text-white font-mono">{pct}%</span></span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* 6. High-Consumption Units Chart (Bar Chart) [Grid Span: 5 Cols] */}
-      <section id="bento_top_units" className="lg:col-span-5 bg-slate-800/30 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between shadow-lg">
-        <div className="flex items-center gap-2 mb-2">
-          <Layers className="h-4 w-4 text-blue-400" />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-            ยอดหน่วยเบิกจ่ายสูงสุด (Top 5 Units)
-          </h3>
-        </div>
-        
-        <div className="w-full h-36">
-          {unitBarData.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-slate-500 text-xs italic">
-              ไม่มีข้อมูลการเบิกจากหน่วย
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={unitBarData} layout="vertical" margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                <XAxis type="number" tick={{ fill: '#94a3b8', fontSize: 8 }} />
-                <YAxis dataKey="name" type="category" tick={{ fill: '#94a3b8', fontSize: 9 }} width={75} />
-                <Tooltip 
-                  formatter={(value) => [`${value} ลิตร`, 'ยอดรวม']}
-                  contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px', fontSize: '11px', color: '#fff' }}
-                />
-                <Bar dataKey="value" fill="#3B82F6" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </section>
+      {userRole !== 'user' && (
+        <section id="bento_top_units" className="lg:col-span-5 bg-slate-800/30 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between shadow-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <Layers className="h-4 w-4 text-blue-400" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+              ยอดหน่วยเบิกจ่ายสูงสุด (Top 5 Units)
+            </h3>
+          </div>
+          
+          <div className="w-full h-36">
+            {unitBarData.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-slate-500 text-xs italic">
+                ไม่มีข้อมูลการเบิกจากหน่วย
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={unitBarData} layout="vertical" margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                  <XAxis type="number" tick={{ fill: '#94a3b8', fontSize: 8 }} />
+                  <YAxis dataKey="name" type="category" tick={{ fill: '#94a3b8', fontSize: 9 }} width={75} />
+                  <Tooltip 
+                    formatter={(value) => [`${value} ลิตร`, 'ยอดรวม']}
+                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px', fontSize: '11px', color: '#fff' }}
+                  />
+                  <Bar dataKey="value" fill="#3B82F6" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* 7. Key Operational Metrics Summary [Grid Span: 3 Cols] */}
-      <section id="bento_stats_metrics" className="lg:col-span-3 grid grid-cols-2 gap-2 shadow-lg">
-        {/* Metric A */}
-        <div className="bg-slate-800/40 border border-slate-700/60 p-3 rounded-2xl flex flex-col justify-between">
-          <div className="p-1.5 bg-blue-600/10 text-blue-400 rounded-lg w-fit">
-            <Activity className="h-4 w-4" />
+      {userRole !== 'user' && (
+        <section id="bento_stats_metrics" className="lg:col-span-3 grid grid-cols-2 gap-2 shadow-lg">
+          {/* Metric A */}
+          <div className="bg-slate-800/40 border border-slate-700/60 p-3 rounded-2xl flex flex-col justify-between">
+            <div className="p-1.5 bg-blue-600/10 text-blue-400 rounded-lg w-fit">
+              <Activity className="h-4 w-4" />
+            </div>
+            <div className="mt-2">
+              <span className="text-[9px] text-slate-400 uppercase tracking-widest block font-bold">บันทึกรวม</span>
+              <span className="text-xl font-black text-white font-mono">{(totalTransactions ?? 0).toLocaleString()}</span>
+              <span className="text-[9px] text-slate-500 block">ครั้ง</span>
+            </div>
           </div>
-          <div className="mt-2">
-            <span className="text-[9px] text-slate-400 uppercase tracking-widest block font-bold">บันทึกรวม</span>
-            <span className="text-xl font-black text-white font-mono">{(totalTransactions ?? 0).toLocaleString()}</span>
-            <span className="text-[9px] text-slate-500 block">ครั้ง</span>
-          </div>
-        </div>
 
-        {/* Metric B */}
-        <div className="bg-slate-800/40 border border-slate-700/60 p-3 rounded-2xl flex flex-col justify-between">
-          <div className="p-1.5 bg-purple-600/10 text-purple-400 rounded-lg w-fit">
-            <Gauge className="h-4 w-4" />
+          {/* Metric B */}
+          <div className="bg-slate-800/40 border border-slate-700/60 p-3 rounded-2xl flex flex-col justify-between">
+            <div className="p-1.5 bg-purple-600/10 text-purple-400 rounded-lg w-fit">
+              <Gauge className="h-4 w-4" />
+            </div>
+            <div className="mt-2">
+              <span className="text-[9px] text-slate-400 uppercase tracking-widest block font-bold">เฉลี่ยต่อคัน</span>
+              <span className="text-xl font-black text-white font-mono">{(avgDispensed ?? 0).toLocaleString()}</span>
+              <span className="text-[9px] text-slate-500 block">ลิตร</span>
+            </div>
           </div>
-          <div className="mt-2">
-            <span className="text-[9px] text-slate-400 uppercase tracking-widest block font-bold">เฉลี่ยต่อคัน</span>
-            <span className="text-xl font-black text-white font-mono">{(avgDispensed ?? 0).toLocaleString()}</span>
-            <span className="text-[9px] text-slate-500 block">ลิตร</span>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* 8. Recent Transaction Table [Grid Span: 9 Cols] */}
-      <section id="bento_transaction_table" className="lg:col-span-9 bg-[#111827]/40 rounded-2xl border border-slate-700/80 flex flex-col overflow-hidden shadow-xl">
+      {/* 8. Recent Transaction Table [Grid Span: 9 or 12 Cols] */}
+      <section 
+        id="bento_transaction_table" 
+        className={`${
+          userRole === 'user' ? 'lg:col-span-12' : 'lg:col-span-9'
+        } bg-[#111827]/40 rounded-2xl border border-slate-700/80 flex flex-col overflow-hidden shadow-xl`}
+      >
         <div className="p-4 border-b border-slate-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-800/40">
           <div className="flex items-center gap-3">
             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
@@ -1025,56 +1047,58 @@ export default function Dashboard({
       </section>
 
       {/* 9. Tank Levels (Narrow) [Grid Span: 3 Cols] */}
-      <section id="bento_tanks_sidebar" className="lg:col-span-3 flex flex-col gap-4 shadow-xl">
-        {inventory.map((inv, idx) => {
-          const currentStock = inv?.currentStock ?? 0;
-          const capacity = inv?.capacity ?? 1;
-          const pct = capacity > 0 ? Math.round((currentStock / capacity) * 100) : 0;
-          const fuelType = inv?.fuelType ?? 'ไม่ระบุชนิด';
-          const isDiesel = fuelType.includes('ดีเซล');
-          const isLow = pct < 25;
-          const barColor = isLow ? 'bg-red-500' : isDiesel ? 'bg-blue-500' : 'bg-amber-500';
-          const labelColor = isLow ? 'text-red-400 font-black animate-pulse' : isDiesel ? 'text-blue-400' : 'text-amber-400';
+      {userRole !== 'user' && (
+        <section id="bento_tanks_sidebar" className="lg:col-span-3 flex flex-col gap-4 shadow-xl">
+          {inventory.map((inv, idx) => {
+            const currentStock = inv?.currentStock ?? 0;
+            const capacity = inv?.capacity ?? 1;
+            const pct = capacity > 0 ? Math.round((currentStock / capacity) * 100) : 0;
+            const fuelType = inv?.fuelType ?? 'ไม่ระบุชนิด';
+            const isDiesel = fuelType.includes('ดีเซล');
+            const isLow = pct < 25;
+            const barColor = isLow ? 'bg-red-500' : isDiesel ? 'bg-blue-500' : 'bg-amber-500';
+            const labelColor = isLow ? 'text-red-400 font-black animate-pulse' : isDiesel ? 'text-blue-400' : 'text-amber-400';
 
-          return (
-            <div 
-              key={inv?.id || idx} 
-              className="bg-slate-850 bg-slate-800/40 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-                  คงเหลือ: {fuelType} (ถัง {idx + 1})
-                </p>
-                {isLow && (
-                  <span className="flex h-2 w-2 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-col justify-end gap-2">
-                <div className="flex justify-between items-end text-white">
-                  <span className="text-2xl font-black font-display tracking-tight">
-                    {currentStock.toLocaleString()}
-                  </span>
-                  <span className="text-xs text-slate-400 pb-1 italic font-mono">
-                    / {capacity.toLocaleString()} L
-                  </span>
+            return (
+              <div 
+                key={inv?.id || idx} 
+                className="bg-slate-850 bg-slate-800/40 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                    คงเหลือ: {fuelType} (ถัง {idx + 1})
+                  </p>
+                  {isLow && (
+                    <span className="flex h-2 w-2 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    </span>
+                  )}
                 </div>
-                <div className="h-4 bg-slate-900 rounded-full overflow-hidden border border-slate-800 p-0.5">
-                  <div 
-                    className={`h-full rounded-full transition-all duration-700 ${barColor}`} 
-                    style={{ width: `${pct}%` }}
-                  ></div>
+                <div className="flex flex-col justify-end gap-2">
+                  <div className="flex justify-between items-end text-white">
+                    <span className="text-2xl font-black font-display tracking-tight">
+                      {currentStock.toLocaleString()}
+                    </span>
+                    <span className="text-xs text-slate-400 pb-1 italic font-mono">
+                      / {capacity.toLocaleString()} L
+                    </span>
+                  </div>
+                  <div className="h-4 bg-slate-900 rounded-full overflow-hidden border border-slate-800 p-0.5">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-700 ${barColor}`} 
+                      style={{ width: `${pct}%` }}
+                    ></div>
+                  </div>
+                  <p className={`text-right text-[10px] font-bold ${labelColor}`}>
+                    {pct}% ของความจุ
+                  </p>
                 </div>
-                <p className={`text-right text-[10px] font-bold ${labelColor}`}>
-                  {pct}% ของความจุ
-                </p>
               </div>
-            </div>
-          );
-        })}
-      </section>
+            );
+          })}
+        </section>
+      )}
 
     </div>
   );
