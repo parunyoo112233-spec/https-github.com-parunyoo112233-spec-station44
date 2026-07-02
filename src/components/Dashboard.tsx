@@ -425,11 +425,11 @@ export default function Dashboard({
         </section>
       )}
 
-      {/* 3. Unit Fuel Quotas / Received-Disbursed Summary [Grid Span: 3 Cols] */}
+      {/* 3. Unit Fuel Quotas / Received-Disbursed Summary [Grid Span: 12 Cols for User, 3 Cols for Admin/Officer] */}
       <section 
         id="bento_unit_quota_summary" 
         className={`${
-          userRole === 'user' ? 'lg:col-span-8' : 'lg:col-span-3'
+          userRole === 'user' ? 'lg:col-span-12' : 'lg:col-span-3'
         } bg-slate-800/40 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between shadow-lg`}
       >
         <div className="space-y-3 w-full">
@@ -464,30 +464,32 @@ export default function Dashboard({
           </div>
 
           {selectedUnitData ? (
-            <div className="space-y-2.5 pt-1">
-              {/* ยอดรับเข้าโควตา (Allocated / Incoming) */}
-              <div className="flex items-center gap-2 bg-slate-900/40 p-2 rounded-xl border border-slate-800/60">
-                <div className="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-full shrink-0">
-                  <ArrowDownCircle className="h-4 w-4" />
+            <div className={`space-y-2.5 pt-1 ${userRole === 'user' ? 'grid grid-cols-1 md:grid-cols-2 gap-6 space-y-0' : ''}`}>
+              <div className="space-y-2.5">
+                {/* ยอดรับเข้าโควตา (Allocated / Incoming) */}
+                <div className="flex items-center gap-2 bg-slate-900/40 p-2 rounded-xl border border-slate-800/60">
+                  <div className="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-full shrink-0">
+                    <ArrowDownCircle className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">ยอดโควตารับเข้า (ทั้งหมด)</span>
+                    <span className="text-sm font-black text-slate-100 font-mono">
+                      {(selectedUnitData.allocatedLimit || 0).toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">ลิตร</span>
+                    </span>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">ยอดโควตารับเข้า (ทั้งหมด)</span>
-                  <span className="text-sm font-black text-slate-100 font-mono">
-                    {(selectedUnitData.allocatedLimit || 0).toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">ลิตร</span>
-                  </span>
-                </div>
-              </div>
 
-              {/* ยอดจ่ายออกสะสม (Dispatched / Used) */}
-              <div className="flex items-center gap-2 bg-slate-900/40 p-2 rounded-xl border border-slate-800/60">
-                <div className="p-1.5 bg-blue-500/10 text-blue-400 rounded-full shrink-0">
-                  <ArrowUpCircle className="h-4 w-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">ยอดเบิกจ่ายสะสม (ใช้ไป)</span>
-                  <span className="text-sm font-black text-slate-100 font-mono">
-                    {(selectedUnitData.usedCredit || 0).toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">ลิตร</span>
-                  </span>
+                {/* ยอดจ่ายออกสะสม (Dispatched / Used) */}
+                <div className="flex items-center gap-2 bg-slate-900/40 p-2 rounded-xl border border-slate-800/60">
+                  <div className="p-1.5 bg-blue-500/10 text-blue-400 rounded-full shrink-0">
+                    <ArrowUpCircle className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">ยอดเบิกจ่ายสะสม (ใช้ไป)</span>
+                    <span className="text-sm font-black text-slate-100 font-mono">
+                      {(selectedUnitData.usedCredit || 0).toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">ลิตร</span>
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -499,7 +501,7 @@ export default function Dashboard({
                 const pctUsed = limit > 0 ? (used / limit) * 100 : 0;
 
                 return (
-                  <div className="border-t border-slate-800/80 pt-2.5 mt-1.5">
+                  <div className={`${userRole === 'user' ? 'border-t-0 md:border-l md:border-slate-800/40 md:pl-6' : 'border-t border-slate-800/80 pt-2.5 mt-1.5'}`}>
                     <div className="flex justify-between items-center text-[10px] mb-1">
                       <span className="text-slate-400 font-semibold">โควตาคงเหลือ</span>
                       <span className="text-emerald-400 font-bold font-mono">
@@ -535,7 +537,7 @@ export default function Dashboard({
 
                           return (
                             <div key={fuelType} className="flex justify-between items-center text-slate-400">
-                              <span className="truncate max-w-[110px] text-slate-400">{fuelType}</span>
+                              <span className="truncate max-w-[150px] text-slate-400">{fuelType}</span>
                               <span className="font-mono text-slate-300">
                                 <span className={`${colorClass} font-bold`}>{fUsed.toLocaleString()}</span>
                                 <span className="text-slate-600"> / {fLimit.toLocaleString()} ล.</span>
@@ -559,15 +561,14 @@ export default function Dashboard({
         </div>
       </section>
 
-      {/* 4. Quick Actions Widget (Enhanced) [Grid Span: 3 or 4 Cols] */}
-      <section 
-        id="bento_quick_actions"
-        className={`${
-          userRole === 'user' ? 'lg:col-span-4' : 'lg:col-span-3'
-        } bg-slate-800/40 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between shadow-lg`}
-      >
-        <div className="space-y-3.5 w-full">
-          {/* Section Header */}
+      {/* 4. Quick Actions Widget (Enhanced) [Grid Span: 3 Cols for Admin/Officer] */}
+      {userRole !== 'user' && (
+        <section 
+          id="bento_quick_actions"
+          className="lg:col-span-3 bg-slate-800/40 rounded-2xl border border-slate-700/80 p-5 flex flex-col justify-between shadow-lg"
+        >
+          <div className="space-y-3.5 w-full">
+            {/* Section Header */}
           <div className="flex items-center justify-between border-b border-slate-800/60 pb-2">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
               <Zap className="h-4 w-4 text-amber-400" />
@@ -704,20 +705,9 @@ export default function Dashboard({
             </div>
           )}
 
-          {/* Simple Informative Tips for Drivers */}
-          {userRole === 'user' && (
-            <div className="border-t border-slate-800/80 pt-3 mt-1 text-[10px] text-slate-400 space-y-1.5 bg-slate-900/20 p-2.5 rounded-xl border border-slate-800/40">
-              <p className="font-bold text-slate-300 flex items-center gap-1">
-                <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                คำแนะนำสำหรับผู้ใช้
-              </p>
-              <p className="leading-relaxed">
-                กรุณาระบุยอดเลขไมล์ตามจริงเพื่อความถูกต้องในการติดตามอัตราบริโภคน้ำมันของกองทัพ
-              </p>
-            </div>
-          )}
         </div>
       </section>
+      )}
 
       {/* 5. Accumulative Fuel Proportion Chart (Pie Chart) [Grid Span: 4 Cols] */}
       {userRole !== 'user' && (
@@ -844,13 +834,12 @@ export default function Dashboard({
         </section>
       )}
 
-      {/* 8. Recent Transaction Table [Grid Span: 9 or 12 Cols] */}
-      <section 
-        id="bento_transaction_table" 
-        className={`${
-          userRole === 'user' ? 'lg:col-span-12' : 'lg:col-span-9'
-        } bg-[#111827]/40 rounded-2xl border border-slate-700/80 flex flex-col overflow-hidden shadow-xl`}
-      >
+      {/* 8. Recent Transaction Table [Grid Span: 9 Cols] */}
+      {userRole !== 'user' && (
+        <section 
+          id="bento_transaction_table" 
+          className="lg:col-span-9 bg-[#111827]/40 rounded-2xl border border-slate-700/80 flex flex-col overflow-hidden shadow-xl"
+        >
         <div className="p-4 border-b border-slate-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-800/40">
           <div className="flex items-center gap-3">
             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
@@ -1045,6 +1034,7 @@ export default function Dashboard({
           </table>
         </div>
       </section>
+      )}
 
       {/* 9. Tank Levels (Narrow) [Grid Span: 3 Cols] */}
       {userRole !== 'user' && (
