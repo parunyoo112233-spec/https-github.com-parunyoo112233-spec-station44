@@ -121,6 +121,21 @@
         }
       },
       "required": ["id", "unit", "allocatedLimit", "usedCredit", "lastResetDate", "updatedAt"]
+    },
+    "SystemNotification": {
+      "title": "SystemNotification",
+      "description": "System notifications for users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "unit": { "type": "string" },
+        "type": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "readBy": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["title", "message", "unit", "type", "createdAt", "readBy"]
     }
   },
   "firestore": {
@@ -143,6 +158,10 @@
     "unit_credits/{unitId}": {
       "schema": "UnitCredit",
       "description": "Unit fuel quota limits and current consumption"
+    },
+    "notifications/{notificationId}": {
+      "schema": "SystemNotification",
+      "description": "Quota increase notifications and alerts"
     }
   }
 }

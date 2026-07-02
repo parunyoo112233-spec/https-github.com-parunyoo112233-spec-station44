@@ -176,6 +176,27 @@ export default function UserMgmt({ currentUser }: UserMgmtProps) {
         </div>
       )}
 
+      {/* Pending users notification banner */}
+      {users.filter(u => u.status === 'pending').length > 0 && (
+        <div className="bg-amber-500/10 border border-amber-500/30 text-amber-300 p-4 rounded-2xl text-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-lg shadow-amber-500/5">
+          <div className="flex items-start gap-3">
+            <UserCheck className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-amber-200">มีกำลังพลสมัครสมาชิกใหม่ รอการอนุมัติเข้าใช้งานระบบ!</p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                มีกำลังพลจำนวน <span className="text-amber-300 font-bold font-mono">{users.filter(u => u.status === 'pending').length}</span> นาย ที่ลงทะเบียนบัญชีใหม่และยังไม่ถูกอนุมัติเข้าใช้งาน
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setStatusFilter('pending')}
+            className="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-lg transition shrink-0 cursor-pointer shadow-md"
+          >
+            แสดงเฉพาะรออนุมัติ
+          </button>
+        </div>
+      )}
+
       {/* Control Panel: Search & Filter */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-[#0f172a]/60 p-4 rounded-2xl border border-slate-800">
         

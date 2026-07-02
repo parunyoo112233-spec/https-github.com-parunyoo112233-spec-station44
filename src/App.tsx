@@ -7,8 +7,8 @@ import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { onSnapshot, collection, query, orderBy } from 'firebase/firestore';
 import { auth, db } from './firebase';
-import { initializeDatabase, getUserProfile } from './lib/db-helpers';
-import { UserProfile, FuelInventory, FuelRecord, FuelRequest } from './types';
+import { initializeDatabase, getUserProfile, markNotificationAsRead } from './lib/db-helpers';
+import { UserProfile, FuelInventory, FuelRecord, FuelRequest, SystemNotification } from './types';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import RecordForm from './components/RecordForm';
@@ -19,6 +19,7 @@ import InventoryMgmt from './components/InventoryMgmt';
 import UnitCreditsAndReports from './components/UnitCreditsAndReports';
 import UserMgmt from './components/UserMgmt';
 import UserProfileModal from './components/UserProfileModal';
+import NotificationsModal from './components/NotificationsModal';
 import { 
   Fuel, 
   LayoutDashboard, 
@@ -45,11 +46,14 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
 
   // Core Real-Time states
   const [inventory, setInventory] = useState<FuelInventory[]>([]);
   const [records, setRecords] = useState<FuelRecord[]>([]);
   const [requests, setRequests] = useState<FuelRequest[]>([]);
+  const [usersList, setUsersList] = useState<UserProfile[]>([]);
+  const [notifications, setNotifications] = useState<SystemNotification[]>([]);
 
   // 1. Initialize DB and Observe Auth State
   useEffect(() => {
@@ -149,10 +153,33 @@ export default function App() {
       setRequests(items);
     });
 
+    // Subscribe to Users (Admin only)
+    let unsubUsers = () => {};
+    if (currentUser.role === 'admin') {
+      unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
+        const items: UserProfile[] = [];
+        snapshot.forEach((doc) => {
+          items.push({ uid: doc.id, ...doc.data() } as UserProfile);
+        });
+        setUsersList(items);
+      });
+    }
+
+    // Subscribe to Notifications
+    const unsubNotifications = onSnapshot(collection(db, 'notifications'), (snapshot) => {
+      const items: SystemNotification[] = [];
+      snapshot.forEach((doc) => {
+        items.push({ id: doc.id, ...doc.data() } as SystemNotification);
+      });
+      setNotifications(items);
+    });
+
     return () => {
       unsubInv();
       unsubRecords();
       unsubRequests();
+      unsubUsers();
+      unsubNotifications();
     };
   }, [currentUser]);
 
@@ -334,6 +361,22 @@ export default function App() {
     r => r.status === 'pending' && (currentUser.role === 'admin' || currentUser.role === 'officer' || r.requestedBy === currentUser.uid)
   ).length;
 
+  // Pending users count for admin badge (Users awaiting approval)
+  const pendingUsersCount = currentUser?.role === 'admin'
+    ? usersList.filter(u => u.status === 'pending').length
+    : 0;
+
+  // Filter notifications for current user's unit
+  const userNotifications = currentUser
+    ? notifications
+        .filter(n => n.unit === currentUser.department)
+        .sort((a, b) => b.createdAt - a.createdAt)
+    : [];
+
+  const unreadNotifications = currentUser
+    ? userNotifications.filter(n => !n.readBy || !n.readBy.includes(currentUser.uid))
+    : [];
+
   return (
     <div id="app_root" className="min-h-screen bg-slate-900 text-slate-100 font-sans pb-24 md:pb-6">
       
@@ -380,6 +423,20 @@ export default function App() {
                 </div>
               </button>
 
+              {/* Notification Bell */}
+              <button
+                onClick={() => setIsNotificationsModalOpen(true)}
+                className="relative p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 rounded-xl border border-slate-700/60 transition cursor-pointer"
+                title="แจ้งเตือนโควต้าและสิทธิ์"
+              >
+                <Bell className="h-5 w-5" />
+                {unreadNotifications.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-emerald-500 text-slate-950 font-black text-[9px] rounded-full w-4.5 h-4.5 flex items-center justify-center border border-slate-900 animate-pulse">
+                    {unreadNotifications.length}
+                  </span>
+                )}
+              </button>
+
               {/* Log out */}
               <button
                 onClick={handleSignOut}
@@ -394,6 +451,22 @@ export default function App() {
             {/* Mobile Header elements */}
             <div className="flex md:hidden items-center gap-2">
               
+              {/* Quota notification bell for mobile */}
+              <button 
+                onClick={() => setIsNotificationsModalOpen(true)}
+                className={`p-2 relative bg-slate-800 rounded-xl border border-slate-700/60 transition ${
+                  unreadNotifications.length > 0 ? 'text-emerald-400 animate-pulse' : 'text-slate-400'
+                }`}
+                title="แจ้งเตือนโควต้า"
+              >
+                <Bell className="h-4 w-4" />
+                {unreadNotifications.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-emerald-500 text-slate-950 rounded-full text-[8px] font-black w-4 h-4 flex items-center justify-center border border-slate-800">
+                    {unreadNotifications.length}
+                  </span>
+                )}
+              </button>
+
               {/* Notification bell for pending */}
               {pendingRequestsCount > 0 && (
                 <button 
@@ -437,6 +510,54 @@ export default function App() {
 
       {/* 2. Main content container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        {/* Quota Increase Notifications Banner */}
+        {currentUser && unreadNotifications.length > 0 && (
+          <div className="mb-6 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border-2 border-emerald-500/30 p-5 rounded-3xl relative overflow-hidden animate-fadeIn">
+            {/* Background glowing effects */}
+            <div className="absolute -top-12 -right-12 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+            
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-2xl shrink-0 mt-0.5 animate-bounce">
+                  <Bell className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-white flex items-center gap-2">
+                    <span>🎉 ได้รับการปรับเพิ่มโควต้าน้ำมันใหม่!</span>
+                    <span className="bg-emerald-500 text-slate-950 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider font-sans">
+                      {unreadNotifications.length} ใหม่
+                    </span>
+                  </h3>
+                  <div className="mt-1.5 space-y-1 text-xs text-slate-300 font-medium">
+                    {unreadNotifications.map((notif) => (
+                      <p key={notif.id} className="flex items-start gap-1">
+                        <span className="text-emerald-400 font-bold">•</span>
+                        <span>{notif.message}</span>
+                      </p>
+                    ))}
+                  </div>
+                  <p className="text-[9px] text-slate-500 mt-2 font-mono uppercase tracking-wider">
+                    สังกัด: {currentUser.department} | อัปเดตล่าสุด {new Date(unreadNotifications[0].createdAt).toLocaleTimeString('th-TH')} น.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  // Mark all as read
+                  for (const notif of unreadNotifications) {
+                    if (notif.id) {
+                      await markNotificationAsRead(notif.id, currentUser.uid);
+                    }
+                  }
+                }}
+                className="text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-4 py-2.5 rounded-xl transition shrink-0 cursor-pointer shadow-lg shadow-emerald-500/20 active:scale-95 duration-100"
+              >
+                รับทราบและปิดการแจ้งเตือน
+              </button>
+            </div>
+          </div>
+        )}
         
         {/* Render Tab Contents */}
         {activeTab === 'dashboard' && (
@@ -611,7 +732,7 @@ export default function App() {
           {currentUser.role === 'admin' && (
             <button
               onClick={() => setActiveTab('users')}
-              className={`flex flex-col items-center justify-center w-14 py-1 rounded-xl transition cursor-pointer ${
+              className={`flex flex-col items-center justify-center w-14 py-1 rounded-xl transition relative cursor-pointer ${
                 activeTab === 'users'
                   ? 'text-amber-400 font-bold bg-slate-800/60'
                   : 'text-slate-400 hover:text-amber-400'
@@ -619,6 +740,11 @@ export default function App() {
             >
               <UserCheck className="h-5 w-5" />
               <span className="text-[10px] mt-1 font-medium">สิทธิ์/ผู้ใช้</span>
+              {pendingUsersCount > 0 && (
+                <span className="absolute top-0 right-1 bg-amber-500 text-slate-950 font-black text-[9px] rounded-full px-1.5 py-0.5 transform scale-90 border border-slate-900 animate-pulse">
+                  {pendingUsersCount}
+                </span>
+              )}
             </button>
           )}
 
@@ -641,6 +767,15 @@ export default function App() {
               localStorage.setItem('demo_user_profile', JSON.stringify(updatedProfile));
             }
           }}
+        />
+      )}
+
+      {currentUser && (
+        <NotificationsModal
+          isOpen={isNotificationsModalOpen}
+          onClose={() => setIsNotificationsModalOpen(false)}
+          notifications={userNotifications}
+          currentUser={currentUser}
         />
       )}
 

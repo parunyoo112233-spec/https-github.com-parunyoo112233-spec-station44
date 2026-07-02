@@ -80,3 +80,14 @@ export interface UnitCredit {
   quotas?: Record<string, FuelQuota>; // รายการโควตาแยกชนิดน้ำมัน
 }
 
+export interface SystemNotification {
+  id?: string;
+  title: string;
+  message: string;
+  unit: string; // The unit/department this notification belongs to
+  type: 'quota_increase' | 'info';
+  createdAt: number;
+  readBy: string[]; // List of user uids who have dismissed/read it
+}
+
+

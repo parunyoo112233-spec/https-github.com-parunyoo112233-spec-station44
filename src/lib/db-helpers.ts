@@ -18,7 +18,7 @@ import {
   runTransaction
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { FuelInventory, FuelRecord, FuelRequest, UserProfile, UnitCredit, UserRole } from '../types';
+import { FuelInventory, FuelRecord, FuelRequest, UserProfile, UnitCredit, UserRole, SystemNotification } from '../types';
 
 // Collection references
 export const usersCol = collection(db, 'users');
@@ -26,6 +26,7 @@ export const recordsCol = collection(db, 'fuel_records');
 export const requestsCol = collection(db, 'fuel_requests');
 export const inventoryCol = collection(db, 'fuel_inventory');
 export const unitCreditsCol = collection(db, 'unit_credits');
+export const notificationsCol = collection(db, 'notifications');
 
 const INITIAL_UNIT_CREDITS: UnitCredit[] = [
   { 
@@ -567,12 +568,19 @@ export async function updateUnitCreditLimit(unitId: string, limits: Record<strin
     };
 
     const newQuotas: Record<string, { allocatedLimit: number; usedCredit: number }> = {};
+    const increases: string[] = [];
+
     Object.entries(quotasInput).forEach(([fuelType, allocatedLimit]) => {
-      const existing = currentQuotas[fuelType] || { usedCredit: 0 };
+      const existing = currentQuotas[fuelType] || { allocatedLimit: 0, usedCredit: 0 };
       newQuotas[fuelType] = {
         allocatedLimit,
         usedCredit: existing.usedCredit
       };
+
+      if (allocatedLimit > (existing.allocatedLimit || 0)) {
+        const diff = allocatedLimit - (existing.allocatedLimit || 0);
+        increases.push(`${fuelType} เพิ่มขึ้น +${diff.toLocaleString()} ลิตร`);
+      }
     });
 
     const totalUsed = Object.values(newQuotas).reduce((sum, q) => sum + q.usedCredit, 0);
@@ -583,13 +591,29 @@ export async function updateUnitCreditLimit(unitId: string, limits: Record<strin
       quotas: newQuotas,
       updatedAt: Date.now()
     });
+
+    if (increases.length > 0) {
+      await addDoc(notificationsCol, {
+        title: `ได้รับการเพิ่มโควต้าน้ำมัน (${unitId})`,
+        message: `หน่วยงานของคุณได้รับการปรับเพิ่มโควต้าน้ำมัน: ${increases.join(', ')} (โควตารวมใหม่เป็น ${totalAllocated.toLocaleString()} ลิตร)`,
+        unit: unitId,
+        type: 'quota_increase',
+        createdAt: Date.now(),
+        readBy: []
+      });
+    }
   } else {
     const newQuotas: Record<string, { allocatedLimit: number; usedCredit: number }> = {};
+    const increases: string[] = [];
+
     Object.entries(quotasInput).forEach(([fuelType, allocatedLimit]) => {
       newQuotas[fuelType] = {
         allocatedLimit,
         usedCredit: 0
       };
+      if (allocatedLimit > 0) {
+        increases.push(`${fuelType} ${allocatedLimit.toLocaleString()} ลิตร`);
+      }
     });
 
     await setDoc(creditDocRef, {
@@ -601,6 +625,17 @@ export async function updateUnitCreditLimit(unitId: string, limits: Record<strin
       lastResetDate: new Date().toISOString().split('T')[0],
       updatedAt: Date.now()
     });
+
+    if (increases.length > 0) {
+      await addDoc(notificationsCol, {
+        title: `จัดตั้งโควต้าน้ำมันเริ่มต้น (${unitId})`,
+        message: `หน่วยงานของคุณได้รับการจัดตั้งโควต้าน้ำมันเริ่มต้น: ${increases.join(', ')}`,
+        unit: unitId,
+        type: 'quota_increase',
+        createdAt: Date.now(),
+        readBy: []
+      });
+    }
   }
 }
 
@@ -689,6 +724,23 @@ export async function updateUserStatus(uid: string, status: 'pending' | 'active'
   await updateDoc(userDocRef, {
     status: status
   });
+}
+
+/**
+ * Mark a notification as read/dismissed by a user
+ */
+export async function markNotificationAsRead(notificationId: string, uid: string): Promise<void> {
+  const docRef = doc(db, 'notifications', notificationId);
+  const snap = await getDoc(docRef);
+  if (snap.exists()) {
+    const data = snap.data();
+    const readBy = data.readBy || [];
+    if (!readBy.includes(uid)) {
+      await updateDoc(docRef, {
+        readBy: [...readBy, uid]
+      });
+    }
+  }
 }
 
 
