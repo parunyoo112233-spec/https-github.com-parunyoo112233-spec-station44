@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword 
 } from 'firebase/auth';
-import { auth } from '../firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 import { saveUserProfile, getUserProfile } from '../lib/db-helpers';
 import { UserProfile, UserRole } from '../types';
 import { Fuel, Lock, Mail, User, Shield, Compass, Truck, Loader2, Briefcase } from 'lucide-react';
@@ -30,6 +31,42 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
+  const [units, setUnits] = useState<string[]>([]);
+  const [loadingUnits, setLoadingUnits] = useState(false);
+
+  // Fetch unit credits on mount
+  useEffect(() => {
+    const fetchUnits = async () => {
+      setLoadingUnits(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'unit_credits'));
+        const unitList: string[] = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const unitName = data.unit || doc.id;
+          if (unitName && !unitList.includes(unitName)) {
+            unitList.push(unitName);
+          }
+        });
+        
+        unitList.sort((a, b) => a.localeCompare(b, 'th'));
+        setUnits(unitList);
+        
+        if (unitList.length > 0) {
+          setDepartment(unitList[0]);
+        }
+      } catch (err) {
+        console.error('Error fetching unit credits:', err);
+        const fallback = ['มทบ.44', 'ร.25 พัน.1', 'พัน.ส.มทบ.44'];
+        setUnits(fallback);
+        setDepartment(fallback[0]);
+      } finally {
+        setLoadingUnits(false);
+      }
+    };
+
+    fetchUnits();
+  }, []);
 
   // Helper to persist user session based on Remember Me checkbox
   const saveSession = (profile: UserProfile) => {
@@ -482,21 +519,41 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
               {/* Department */}
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider block">
-                  หน่วยงาน/สังกัด (e.g. ร.25 พัน.1)
-                </label>
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-medium text-slate-400 uppercase tracking-wider block">
+                    หน่วยงาน/สังกัด (เฉพาะหน่วยที่มีโควตา)
+                  </label>
+                  {loadingUnits && (
+                    <span className="text-[10px] text-emerald-400 font-mono animate-pulse flex items-center gap-1">
+                      <Loader2 className="h-3 w-3 animate-spin" /> กำลังโหลด...
+                    </span>
+                  )}
+                </div>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
                     <Compass className="h-4 w-4" />
                   </span>
-                  <input
-                    type="text"
+                  <select
                     required
-                    placeholder="ร.25 พัน.1 หรือ มทบ.44"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:border-emerald-500 outline-none text-white text-sm transition"
-                  />
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:border-emerald-500 outline-none text-white text-sm transition appearance-none cursor-pointer"
+                  >
+                    {units.length === 0 && !loadingUnits ? (
+                      <option value="" disabled>ไม่พบหน่วยงานที่มีโควตาในระบบ</option>
+                    ) : (
+                      units.map((unitName) => (
+                        <option key={unitName} value={unitName} className="bg-slate-900 text-white">
+                          {unitName}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
+                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                    </svg>
+                  </div>
                 </div>
               </div>
 
