@@ -478,6 +478,7 @@ export default function App() {
           <RecordHistory 
             records={records} 
             inventory={inventory} 
+            currentUser={currentUser}
           />
         )}
 
